@@ -111,6 +111,7 @@ class Resource:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
+        print('Using local edit of pyworld3')
 
     def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1):
         """
