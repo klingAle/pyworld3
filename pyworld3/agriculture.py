@@ -243,8 +243,9 @@ class Agriculture:
         self.year_max = year_max
         self.verbose = False
         self.length = self.year_max - self.year_min
-        self.n = int(self.length / self.dt)
+        self.n = int(self.length / self.dt) # Anzahl Schritte
         self.time = np.arange(self.year_min, self.year_max, self.dt)
+        print('Using local edit of pyworld3')
 
     def init_agriculture_constants(self, ali=0.9e9, pali=2.3e9, lfh=0.7,
                                    palt=3.2e9, pl=0.1, alai1=2, alai2=2,
@@ -875,3 +876,4 @@ class Agriculture:
         From step k=0 requires: FR, else nothing
         """
         self.pfr[k] = self.smooth_fr(k, self.fspd)
+
