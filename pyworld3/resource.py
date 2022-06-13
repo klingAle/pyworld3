@@ -98,7 +98,23 @@ class Resource:
         fcaor value before time=pyear [].
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
-
+    
+    New Varibles(2004):
+    druf : float
+        Desired Resource Utilization Factor[resource units]. The default is 4.8e9.
+    rtc : numpy.ndarray
+        Res Tech Change
+    rtcm : numpy.ndarray
+        Resource Technology Change Multiplier
+    rtcr : numpy.ndarray
+        Res Tech Change Rate
+    rt : numpy.ndarray
+        Res Tech
+    tdt : float 
+        Technology Development Time [years]. The default is 20 years.
+        
+        
+        
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
@@ -332,6 +348,9 @@ class Resource:
         From step k requires: nothing
         """
         self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
+        """
+        Diese Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion eingefügt
+        """
 
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
