@@ -39,6 +39,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from .specials import clip
+from .specials import Delay3
 from .utils import requires
 
 
@@ -129,7 +130,7 @@ class Resource:
         self.time = np.arange(self.year_min, self.year_max, self.dt)
         print('Using local edit of pyworld3')
 
-    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1):
+    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, druf = 4.8e9, tdt = 20, rt = 1):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
@@ -138,6 +139,9 @@ class Resource:
         self.nri = nri
         self.nruf1 = nruf1
         self.nruf2 = nruf2
+        self.druf = druf
+        self.tdt = tdt
+        self.rt[0] = rt
 
     def init_resource_variables(self):
         """
@@ -154,6 +158,11 @@ class Resource:
         self.fcaor = np.full((self.n,), np.nan)
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
+        
+        self.rtc = np.full((self.n,), np.nan)
+        self.rtcm = np.full((self.n,), np.nan)
+        self.rt = np.full((self.n,), np.nan)
+        self.rtm = np.full((self.n,), np.nan)
 
     def set_resource_delay_functions(self, method="euler"):
         """
@@ -218,6 +227,9 @@ class Resource:
         self.fioac = 0.43
         self.alic = 14
         self.icor = 3
+        
+        self.rt[0] = 1 #setzten des ersten Wertes?
+        
         # variables
         self.pop = np.full((self.n,), np.nan)
         self.pop1 = np.full((self.n,), np.nan)
@@ -279,6 +291,7 @@ class Resource:
         self._update_nruf(0)
         self._update_pcrum(0)
         self._update_nrur(0, 0)
+        self._update_rt(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
         """
@@ -299,6 +312,7 @@ class Resource:
         self._update_nruf(k)
         self._update_pcrum(k)
         self._update_nrur(k, kl)
+        self._update_rt(k)
 
     def run_resource(self):
         """
@@ -342,22 +356,18 @@ class Resource:
         self.fcaor[k] = clip(self.fcaor2[k], self.fcaor1[k], self.time[k],
                              self.pyear)
 
-    @requires(["nruf"])
+    @requires(["nruf"], ["rt"])
     def _update_nruf(self, k):
         """
         From step k requires: nothing
         """
         self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
+        #self.nruf[k]=self.rt[k]
+        
         """
-        Diese Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion eingefügt:
-            nruf: Delay3(rt,tdt) ???
-            tdt = 20
-            rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
-            rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
-            rtc = 1-(nrur/druf)
-            druf = 4.8e9 
+        Die Clip Funktion bei nruf wurde entfernt, stattdessen wird die Technologiefunktion _update_rt eingefügt:
         """
-
+        
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
         """
@@ -365,9 +375,50 @@ class Resource:
         """
         self.pcrum[k] = self.pcrum_f(self.iopc[k])
 
-    @requires(["nrur"], ["pop", "pcrum", "nruf"])
+    @requires(["nrur"], ["pop", "pcrum", "nruf"], ["rt"])
     def _update_nrur(self, k, kl):
         """
         From step k requires: POP PCRUM NRUF
         """
         self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
+    
+    @requires(["nrur"])
+    def _update_rt(self, k):
+        """
+        From step k requires: nruf, nrur
+        """
+            
+        self.rtc[k] = 1-(self.nrur[k]/self.druf)
+        
+        if self.rtc[k] <= -1:
+            self.rtcm[k] = -0.04
+        if self.rtc[k] >= 0:
+            self.rtcm[k] = 0
+        if self.rtc[k] > -1 and self.rtc[k] < 0:
+            self.rtcm[k] = self.rtc[k] * -0.04
+
+        if self.time[k] >= self.pyear:
+            self.rt[k] = self.rt[k-1] + self.rtcm[k] 
+            
+        if self.time[k] < self.pyear:
+            self.rt[k] = self.rt[k-1]
+        if k == 0:
+            self.rt[0] = 1 #Ich habe den wert eigentlich am anfang deklariert aber anscheinen ohne erfolg
+        
+        #print(self.rt)
+        self.rtm = Delay3(self.rt, self.tdt, self.time)
+        print(self.rtm)
+        #self.nruf[k] = Delay3(self.rt, self.tdt, self.time) #funktioniert nicht
+        #self.nruf[k]=self.rt[k] #so sollte es doch theoretisch sein, falls es kein delay gäbe oder?
+        print(self.rt)   
+        
+        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) #so sieht eine delay3 funktion bei pollution aus
+        
+        """
+        nruf: Delay3(rt,tdt) ???
+        tdt = 20
+        rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
+        rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
+        rtc = 1-(nrur/druf)
+        druf = 4.8e9 
+        """
