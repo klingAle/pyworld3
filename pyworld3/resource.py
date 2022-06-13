@@ -109,7 +109,7 @@ class Resource:
     rtcr : numpy.ndarray
         Res Tech Change Rate
     rt : numpy.ndarray
-        Res Tech
+        Res Tech. Init = 1
     tdt : float 
         Technology Development Time [years]. The default is 20 years.
         
@@ -349,7 +349,13 @@ class Resource:
         """
         self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
         """
-        Diese Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion eingefügt
+        Diese Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion eingefügt:
+            nruf: Delay3(rt,tdt) ???
+            tdt = 20
+            rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
+            rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
+            rtc = 1-(nrur/druf)
+            druf = 4.8e9 
         """
 
     @requires(["pcrum"], ["iopc"])
