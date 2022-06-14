@@ -40,7 +40,6 @@ import numpy as np
 
 from .specials import clip
 from .specials import Delay3
-from .specials import func_delay3
 from .utils import requires
 
 
@@ -140,6 +139,8 @@ class Resource:
         self.nri = nri
         self.nruf1 = nruf1
         self.nruf2 = nruf2
+        
+        #neu hinzugefügt:
         self.druf = druf
         self.tdt = tdt
         self.rt[0] = rt
@@ -160,6 +161,7 @@ class Resource:
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
         
+        #neu hinzugefügt:
         self.rtc = np.full((self.n,), np.nan)
         self.rtcm = np.full((self.n,), np.nan)
         self.rt = np.full((self.n,), np.nan)
@@ -177,9 +179,18 @@ class Resource:
         method : str, optional
             Numerical integration method: "euler" or "odeint". The default is
             "euler".
+        """
+        
+        #neu hinzugefügt:
+        var_delay3 = ["nruf"]
+        for var_ in var_delay3:
+            func_delay = Delay3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "delay3_"+var_.lower(), func_delay)
 
         """
-        pass
+        Delay Funktion aus Pollution-class kopiert und Variablen angepasst.
+        """
 
     def set_resource_table_functions(self, json_file=None):
         """
@@ -229,7 +240,8 @@ class Resource:
         self.alic = 14
         self.icor = 3
         
-        self.rt[0] = 1 #setzten des ersten Wertes?
+        #neu hinzugefügt:
+        self.rt[0] = 1
         
         # variables
         self.pop = np.full((self.n,), np.nan)
@@ -292,6 +304,7 @@ class Resource:
         self._update_nruf(0)
         self._update_pcrum(0)
         self._update_nrur(0, 0)
+        #neu hinzugefügt:
         self._update_rt(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
@@ -313,6 +326,8 @@ class Resource:
         self._update_nruf(k)
         self._update_pcrum(k)
         self._update_nrur(k, kl)
+        
+        #neu hinzugefügt:
         self._update_rt(k)
 
     def run_resource(self):
@@ -362,7 +377,7 @@ class Resource:
         """
         From step k requires: nothing
         """
-        self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
+        #self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
         
         """
         Die Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion _update_rt eingefügt
@@ -387,6 +402,8 @@ class Resource:
         """
         From step k requires: nrur
         """
+        #Formeln und Variablen aus Inside Maker
+        
         #rtc = 1-(nrur/druf) 
         self.rtc[k] = 1-(self.nrur[k]/self.druf)
         
@@ -408,15 +425,21 @@ class Resource:
             self.rt[0] = 1 
         
         #nruf= Delay3(rt,tdt)
+        
         #self.nruf = Delay3(self.rt, self.tdt, self.time)
         #self.nruf = func_delay3(self.rt,self.time,0, self.tdt)
-        #self.nruf[k] = Delay3(self.rt, self.tdt, self.time) #funktioniert nicht
+        #self.nruf[k] = Delay3(self.rt, self.tdt, self.time)
         
-        #self.nruf[k]=self.rt[k] #so sollte es doch theoretisch sein, falls es kein delay gäbe oder?
+        #kopiert aus Pollution
+        self.nruf[k] = self.delay3_nruf(k, self.tdt)
+        
+        #self.nruf[k]=self.rt[k] #falls es kein delay gäbe
         
         
         print(self.rt)
         print(self.nruf)
+        #nruf ist rt geglättet
         
-        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) #so sieht eine delay3 funktion bei pollution aus, Z.498
+        #so sieht eine delay3 funktion bei pollution aus, Z.498
+        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) 
         

@@ -13,6 +13,7 @@ rsc.run_resource()
 plot_world_variables(rsc.time,
                      [rsc.nrfr, rsc.iopc, rsc.pop],
                      ["NRFR", "IOPC", "POP"],
-                     [[0, 1], [0, 1e3], [0, 16e9]])
+                     [[0, 1], [0, 1e3], [0, 16e9]],
+                     figsize=(7, 5), title="Solo Resources")
 
 print('pyworld3_03 Update Version')

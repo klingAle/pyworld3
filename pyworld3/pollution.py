@@ -141,6 +141,7 @@ class Pollution:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
+        print('Using local edit of pyworld3')
 
     def init_pollution_constants(self, ppoli=2.5e7, ppol70=1.36e8, ahl70=1.5,
                                  amti=1, imti=10, imef=0.1, fipm=0.001,
@@ -416,6 +417,10 @@ class Pollution:
         self._update_ahlm(k)
         self._update_ahl(k)
         self._update_ppasr(k, kl)
+        
+        print(self.ppapr[k])
+        print(self.pptd[k])
+        print("Hello World")
 
     def run_pollution(self):
         """
@@ -496,7 +501,7 @@ class Pollution:
         """
         # !!! is originally ppgr[jk] rather than ppgr[k]
         self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k])
-
+        
     @requires(["ahlm"], ["ppolx"])
     def _update_ahlm(self, k):
         """
