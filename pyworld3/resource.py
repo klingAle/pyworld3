@@ -40,6 +40,7 @@ import numpy as np
 
 from .specials import clip
 from .specials import Delay3
+from .specials import func_delay3
 from .utils import requires
 
 
@@ -362,10 +363,9 @@ class Resource:
         From step k requires: nothing
         """
         self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
-        #self.nruf[k]=self.rt[k]
         
         """
-        Die Clip Funktion bei nruf wurde entfernt, stattdessen wird die Technologiefunktion _update_rt eingefügt:
+        Die Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion _update_rt eingefügt
         """
         
     @requires(["pcrum"], ["iopc"])
@@ -385,40 +385,38 @@ class Resource:
     @requires(["nrur"])
     def _update_rt(self, k):
         """
-        From step k requires: nruf, nrur
+        From step k requires: nrur
         """
-            
+        #rtc = 1-(nrur/druf) 
         self.rtc[k] = 1-(self.nrur[k]/self.druf)
         
+        #rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
         if self.rtc[k] <= -1:
             self.rtcm[k] = -0.04
         if self.rtc[k] >= 0:
             self.rtcm[k] = 0
         if self.rtc[k] > -1 and self.rtc[k] < 0:
             self.rtcm[k] = self.rtc[k] * -0.04
-
+        
+        #rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
         if self.time[k] >= self.pyear:
             self.rt[k] = self.rt[k-1] + self.rtcm[k] 
-            
         if self.time[k] < self.pyear:
             self.rt[k] = self.rt[k-1]
+        #setzten des Anfangswertes, habe ich in der Deklarierung "init_exogenous_inputs" schon gemacht aber hat anscheinend nicht funktioniert
         if k == 0:
-            self.rt[0] = 1 #Ich habe den wert eigentlich am anfang deklariert aber anscheinen ohne erfolg
+            self.rt[0] = 1 
         
-        #print(self.rt)
-        self.rtm = Delay3(self.rt, self.tdt, self.time)
-        print(self.rtm)
+        #nruf= Delay3(rt,tdt)
+        #self.nruf = Delay3(self.rt, self.tdt, self.time)
+        #self.nruf = func_delay3(self.rt,self.time,0, self.tdt)
         #self.nruf[k] = Delay3(self.rt, self.tdt, self.time) #funktioniert nicht
+        
         #self.nruf[k]=self.rt[k] #so sollte es doch theoretisch sein, falls es kein delay gäbe oder?
-        print(self.rt)   
         
-        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) #so sieht eine delay3 funktion bei pollution aus
         
-        """
-        nruf: Delay3(rt,tdt) ???
-        tdt = 20
-        rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
-        rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
-        rtc = 1-(nrur/druf)
-        druf = 4.8e9 
-        """
+        print(self.rt)
+        print(self.nruf)
+        
+        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) #so sieht eine delay3 funktion bei pollution aus, Z.498
+        
