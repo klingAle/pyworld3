@@ -425,7 +425,7 @@ class Resource:
             self.rt[0] = 1 
         
         @requires(["rt"])
-        def _update_ppapr(self, k):
+        def _update_nrfu2(self, k):
             """
             
             """
