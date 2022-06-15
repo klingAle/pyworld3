@@ -39,6 +39,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from .specials import clip
+from .specials import Delay3
 from .utils import requires
 
 
@@ -99,6 +100,20 @@ class Resource:
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
 
+    New atributes
+    tdt : float, optional
+        Technology development time [years]. Default is 20 years.
+    ret : numpy array
+        Res Tech; Stock []
+    rtcr : numpy array
+        Resource Technology Change Rate
+
+    rtcm : numpy.ndarray
+        Resource Technology Change Multiplier
+    rtc : numpy.ndarray
+        Resource Technology Change
+    drur: float
+        Desired Resource Utilization Rate
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
@@ -111,9 +126,9 @@ class Resource:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
-        print('Using local edit of pyworld3')
+        print('Using local edit of pyworld3 resource sector')
 
-    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1):
+    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, tdt=20, drur=48e8):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
@@ -121,7 +136,9 @@ class Resource:
         """
         self.nri = nri
         self.nruf1 = nruf1
-        self.nruf2 = nruf2
+        # self.nruf2 = nruf2 # NRUF2 ist in der neuen Version keine Konstante mehr
+        self.tdt = tdt
+        self.drur = drur
 
     def init_resource_variables(self):
         """
@@ -138,6 +155,12 @@ class Resource:
         self.fcaor = np.full((self.n,), np.nan)
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
+        # ____ab hier neu_____
+        self.nruf2 = np.full((self.n,), np.nan)  # NRUF 2 ist jetzt auch ein array mit n Stellen
+        self.ret = np.full((self.n,), np.nan)  # Res Tech
+        self.rtcr = np.full((self.n,), np.nan)  # Res Tech Change Rate
+        self.rtcm = np.full((self.n,), np.nan)  # Res Tech Change Multiplier
+        self.rtc = np.full((self.n,), np.nan)  # Res Tech Change
 
     def set_resource_delay_functions(self, method="euler"):
         """
@@ -153,7 +176,11 @@ class Resource:
             "euler".
 
         """
-        pass
+        var_delay3 = ["ret"]
+        for var_ in var_delay3:
+            func_delay = Delay3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "delay3_" + var_.lower(), func_delay)
 
     def set_resource_table_functions(self, json_file=None):
         """
@@ -173,7 +200,7 @@ class Resource:
         with open(json_file) as fjson:
             tables = json.load(fjson)
 
-        func_names = ["PCRUM", "FCAOR1", "FCAOR2"]
+        func_names = ["PCRUM", "FCAOR1", "FCAOR2", "RTCR"]  # added RTCR
 
         for func_name in func_names:
             for table in tables:
@@ -182,7 +209,7 @@ class Resource:
                                     bounds_error=False,
                                     fill_value=(table["y.values"][0],
                                                 table["y.values"][-1]))
-                    setattr(self, func_name.lower()+"_f", func)
+                    setattr(self, func_name.lower() + "_f", func)
 
     def init_exogenous_inputs(self):
         """
@@ -284,6 +311,13 @@ class Resource:
         self._update_pcrum(k)
         self._update_nrur(k, kl)
 
+        #___ab hier neue Update Funktionen
+        self._update_ret(j,k)
+        self._update_nruf2(k)
+        self._update_rtcr(k)
+        self._update_rtcm(k)
+        self._update_rtc(k)
+
     def run_resource(self):
         """
         Run a sequence of updates to simulate the resource sector alone with
@@ -300,7 +334,7 @@ class Resource:
                 self.redo_loop = False
                 if self.verbose:
                     print("go loop", k_)
-                self.loopk_resource(k_-1, k_, k_-1, k_, alone=True)
+                self.loopk_resource(k_ - 1, k_, k_ - 1, k_, alone=True)
 
     @requires(["nr"])
     def _update_state_nr(self, k, j, jk):
@@ -309,7 +343,7 @@ class Resource:
         """
         self.nr[k] = self.nr[j] - self.dt * self.nrur[jk]
 
-    @requires(["nrfr"], ["nr"])
+    @requires(["nrfr"], ["nr"])  # Kein Update nötig
     def _update_nrfr(self, k):
         """
         From step k requires: NR
@@ -346,3 +380,47 @@ class Resource:
         From step k requires: POP PCRUM NRUF
         """
         self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
+
+    # ______Ab hier neue updates
+
+    @requires(["ret"])
+    def _update_ret(self, j, k):
+        '''
+        ret: state variable similar to nr
+        Parameters
+        ----------
+        k
+        j: previous step
+        '''
+        self.ret[k] = self.ret[j] + self.ret[k] * self.rtcr[k]
+
+    @requires(["nruf2"], ["tdt", "ret"], check_after_init=False)
+    def _update_nruf2(self, k):
+        """
+
+        Parameters
+        ----------
+        k
+        """
+        self.nruf2[k] = self.delay3_ret(k, self.tdt)
+
+    @requires(["rtcr"], ["ret"])
+    def _update_rtcr(self, k):
+        '''
+
+        Parameters
+        ----------
+        k
+        '''
+        self.rtcr = clip(self.ret * self.rtcm, 0, self.pyear)
+
+    @requires(["rtcm"], ["rtc"])
+    def _update_rtcm(self, k):
+        """
+        From step k requires: rtc
+        """
+        self.rtcm[k] = self.rtcm_f(self.rtc[k])
+
+    @requires(["rtc"],["nrur", "drur"])
+    def _update_rtc(self, k):
+        self.rtc[k] = self.nrur[k] / self.drur
