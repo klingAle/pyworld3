@@ -1074,6 +1074,23 @@
  },
  {
   "sector": "Resource",
+  "x.name": "RTC",
+  "x.values": [
+    -10,
+    -1,
+    0,
+    1
+  ],
+  "y.name": "RTCM",
+  "y.values": [
+    -0.04,
+    -0.04,
+    0,
+    0
+  ]
+ },
+ {
+  "sector": "Resource",
   "x.name": "NRFR",
   "x.values": [
    0.0,

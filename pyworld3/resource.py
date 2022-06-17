@@ -99,27 +99,31 @@ class Resource:
         fcaor value before time=pyear [].
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
+<<<<<<< Updated upstream
     
     New Varibles(2004):
     druf : float
         Desired Resource Utilization Factor[resource units]. The default is 4.8e9.
     rtc : numpy.ndarray
         Res Tech Change
+=======
+
+    New attributes
+    tdt : float, optional
+        Technology development time [years]. Default is 20 years.
+    rt : numpy array
+        Res Tech; Stock []
+    rtcr : numpy array
+        Resource Technology Change Rate
+>>>>>>> Stashed changes
     rtcm : numpy.ndarray
         Resource Technology Change Multiplier
     rtcr : numpy.ndarray
         Res Tech Change Rate
-    rt : numpy.ndarray
-        Res Tech. Init = 1
-    tdt : float 
-        Technology Development Time [years]. The default is 20 years.
-        
-        
-        
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
-                 verbose=False):
+                 verbose=False, szenario = 2): # szenario: 1 = standard run, 2 = technology run
         self.pyear = pyear
         self.dt = dt
         self.year_min = year_min
@@ -128,7 +132,12 @@ class Resource:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
+        self.szenario = szenario
         print('Using local edit of pyworld3')
+        if  self.szenario == 1:
+            print("Szenario: standard run")
+        if self.szenario == 2:
+            print("Szenario: technology run")
 
     def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, druf = 4.8e9, tdt = 20, rt = 1):
         """
@@ -182,7 +191,7 @@ class Resource:
         """
         
         #neu hinzugefügt:
-        var_delay3 = ["nruf"]
+        var_delay3 = ["rt"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
@@ -210,7 +219,7 @@ class Resource:
         with open(json_file) as fjson:
             tables = json.load(fjson)
 
-        func_names = ["PCRUM", "FCAOR1", "FCAOR2"]
+        func_names = ["PCRUM", "FCAOR1", "FCAOR2", "RTCM"]
 
         for func_name in func_names:
             for table in tables:
@@ -301,11 +310,13 @@ class Resource:
         self._update_fcaor(0)
         if alone:
             self.loop0_exogenous()
-        self._update_nruf(0)
         self._update_pcrum(0)
         self._update_nrur(0, 0)
         #neu hinzugefügt:
+        self._update_rtc(0)
+        self._update_rtcm(0)
         self._update_rt(0)
+        self._update_nruf(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
         """
@@ -323,12 +334,14 @@ class Resource:
         self._update_fcaor(k)
         if alone:
             self.loopk_exogenous(k)
-        self._update_nruf(k)
         self._update_pcrum(k)
         self._update_nrur(k, kl)
         
         #neu hinzugefügt:
+        self._update_rtc(k)
+        self._update_rtcm(k)
         self._update_rt(k)
+        self._update_nruf(k)
 
     def run_resource(self):
         """
@@ -371,17 +384,6 @@ class Resource:
         self.fcaor2[k] = self.fcaor2_f(self.nrfr[k])
         self.fcaor[k] = clip(self.fcaor2[k], self.fcaor1[k], self.time[k],
                              self.pyear)
-
-    @requires(["nruf"], ["rt"])
-    def _update_nruf(self, k):
-        """
-        From step k requires: nothing
-        """
-        #self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
-        
-        """
-        Die Clip Funktion wurde entfernt, stattdessen wird die Technologiefunktion _update_rt eingefügt
-        """
         
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
@@ -396,16 +398,24 @@ class Resource:
         From step k requires: POP PCRUM NRUF
         """
         self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
-    
-    @requires(["nrur"])
-    def _update_rt(self, k):
+
+    @requires (["nrur"])    
+    def _update_rtc(self,k):
+        
         """
         From step k requires: nrur
         """
         #Formeln und Variablen aus Inside Maker
-        
+     
         #rtc = 1-(nrur/druf) 
         self.rtc[k] = 1-(self.nrur[k]/self.druf)
+
+    @requires (["rtc"])
+    def _update_rtcm(self, k):
+        """
+        From step k requires: rtc
+        """
+        #Formeln und Variablen aus Inside Maker
         
         #rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
         if self.rtc[k] <= -1:
@@ -414,32 +424,42 @@ class Resource:
             self.rtcm[k] = 0
         if self.rtc[k] > -1 and self.rtc[k] < 0:
             self.rtcm[k] = self.rtc[k] * -0.04
+            
+    @requires (["rtcm"])
+    def _update_rt(self,k):
+        """
+        From step k requires: rtcm
+        """
+        #Formeln und Variablen aus Inside Maker
         
+        #setzten des Anfangswertes, habe ich in der Deklarierung "init_exogenous_inputs" schon gemacht aber hat anscheinend nicht funktioniert
+        if k == 0:
+            self.rt[0] = 1
+            self.nruf[0] = 1
+            
         #rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
         if self.time[k] >= self.pyear:
             self.rt[k] = self.rt[k-1] + self.rtcm[k] 
         if self.time[k] < self.pyear:
             self.rt[k] = self.rt[k-1]
+            
+        
+       
+    
+    @requires (["rt"])
+    def _update_nruf(self,k):
+        """
+        From step k requires: rt
+        """
+        #Formeln und Variablen aus Inside Maker
+        
         #setzten des Anfangswertes, habe ich in der Deklarierung "init_exogenous_inputs" schon gemacht aber hat anscheinend nicht funktioniert
         if k == 0:
-            self.rt[0] = 1 
-        
-        #nruf= Delay3(rt,tdt)
-        
-        #self.nruf = Delay3(self.rt, self.tdt, self.time)
-        #self.nruf = func_delay3(self.rt,self.time,0, self.tdt)
-        #self.nruf[k] = Delay3(self.rt, self.tdt, self.time)
-        
-        #kopiert aus Pollution
-        self.nruf[k] = self.delay3_nruf(k, self.tdt)
-        
-        #self.nruf[k]=self.rt[k] #falls es kein delay gäbe
-        
-        
-        print(self.rt)
-        print(self.nruf)
-        #nruf ist rt geglättet
-        
-        #so sieht eine delay3 funktion bei pollution aus, Z.498
-        #self.ppapr[kl] = self.delay3_ppgr(k, self.pptd[k]) 
-        
+            self.rt[0] = 1
+            self.nruf[0] = 1
+            
+            
+        if self.szenario == 1:
+            self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear) #Reference Run
+        if self.szenario == 2:
+            self.nruf[k] = self.delay3_rt(k, self.tdt)
