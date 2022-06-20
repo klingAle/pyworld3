@@ -8,7 +8,7 @@ from pyworld3.utils import plot_world_variables
 params = {'lines.linewidth': '3'}
 plt.rcParams.update(params)
 
-world3 = World3(szenario=1)
+world3 = World3(szenario=2)
 world3.init_world3_constants()
 world3.init_world3_variables()
 world3.set_world3_table_functions()
@@ -57,7 +57,7 @@ plot_world_variables(world3.time,
                      figsize=(7, 5), title="NRUF+RT")
 
 plot_world_variables(world3.time,
-                     [world3.ef],
-                     ["EF"],
-                     [[0, 2]],
-                     figsize=(7, 5), title="Ecological Footprint")
+                     [world3.ef, world3.hwi],
+                     ["EF", "HWI"],
+                     [[0, 2], [0,1]],
+                     figsize=(7, 5), title="Ecological Footprint+ Human Welfare Index")

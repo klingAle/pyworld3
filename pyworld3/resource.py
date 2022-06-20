@@ -428,7 +428,7 @@ class Resource:
             self.rtcm[k] = 0
         if self.rtc[k] > -1 and self.rtc[k] < 0:
             self.rtcm[k] = self.rtc[k] * -0.04
-          
+        
         #irgentwas stimmt mit der json file nicht
         #self.rtcm[k] = self.rtcm_f(self.rtc[k])     
             
@@ -453,8 +453,8 @@ class Resource:
         
         
         #sehr hässliche Lösung
-        #if self.rt[k] < 0.21:
-            #self.rt[k] = 0.21
+        if self.rt[k] < 0.21:
+            self.rt[k] = 0.21
             
         
        
