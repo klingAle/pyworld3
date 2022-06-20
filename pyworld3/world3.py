@@ -92,7 +92,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975,
-                 iphst=1940, verbose=False):
+                 iphst=1940, verbose=False, szenario = 2):
         self.iphst = iphst
         self.pyear = pyear
         self.dt = dt
@@ -102,6 +102,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.n = int(self.length / self.dt) + 1
         self.time = arange(self.year_min, self.year_max + self.dt, self.dt)
         self.verbose = False
+        self.szenario = szenario
 
     def init_world3_constants(self, p1i=65e7, p2i=70e7, p3i=19e7, p4i=6e7,
                               dcfsn=4, fcest=4000, hsid=20, ieat=3, len=28,
@@ -118,7 +119,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               ppoli=2.5e7, ppol70=1.36e8, ahl70=1.5, amti=1,
                               imti=10, imef=0.1, fipm=0.001, frpm=0.02,
                               ppgf1=1, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
-                              nri=1e12, nruf1=1, nruf2=1):
+                              nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20):
         """
         Initialize the constant parameters of the 5 sectors. Constants and
         their unit are defined in the documentation of the corresponding
@@ -137,7 +138,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.init_pollution_constants(ppoli, ppol70, ahl70, amti, imti, imef,
                                       fipm, frpm, ppgf1, ppgf2, ppgf21, pptd1,
                                       pptd2)
-        self.init_resource_constants(nri, nruf1, nruf2)
+        self.init_resource_constants(nri, nruf1, nruf2, druf, tdt)
 
     def init_world3_variables(self):
         """

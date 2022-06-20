@@ -139,7 +139,7 @@ class Resource:
         if self.szenario == 2:
             print("Szenario: technology run")
 
-    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, druf = 4.8e9, tdt = 20, rt = 1):
+    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, druf = 4.8e9, tdt = 20):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
@@ -152,7 +152,6 @@ class Resource:
         #neu hinzugefügt:
         self.druf = druf
         self.tdt = tdt
-        self.rt[0] = rt
 
     def init_resource_variables(self):
         """
@@ -251,6 +250,7 @@ class Resource:
         
         #neu hinzugefügt:
         self.rt[0] = 1
+        self.nruf[0] = 1
         
         # variables
         self.pop = np.full((self.n,), np.nan)
@@ -313,9 +313,10 @@ class Resource:
         self._update_pcrum(0)
         self._update_nrur(0, 0)
         #neu hinzugefügt:
-        self._update_rtc(0)
-        self._update_rtcm(0)
-        self._update_rt(0)
+        if self.szenario == 2:
+            self._update_rtc(0)
+            self._update_rtcm(0)
+            self._update_rt(0)
         self._update_nruf(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
@@ -338,9 +339,10 @@ class Resource:
         self._update_nrur(k, kl)
         
         #neu hinzugefügt:
-        self._update_rtc(k)
-        self._update_rtcm(k)
-        self._update_rt(k)
+        if self.szenario == 2:
+            self._update_rtc(k)
+            self._update_rtcm(k)
+            self._update_rt(k)
         self._update_nruf(k)
 
     def run_resource(self):
@@ -418,13 +420,19 @@ class Resource:
         #Formeln und Variablen aus Inside Maker
         
         #rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
+        
+        
         if self.rtc[k] <= -1:
             self.rtcm[k] = -0.04
         if self.rtc[k] >= 0:
             self.rtcm[k] = 0
         if self.rtc[k] > -1 and self.rtc[k] < 0:
             self.rtcm[k] = self.rtc[k] * -0.04
+          
+        #irgentwas stimmt mit der json file nicht
+        #self.rtcm[k] = self.rtcm_f(self.rtc[k])     
             
+    
     @requires (["rtcm"])
     def _update_rt(self,k):
         """
@@ -442,6 +450,11 @@ class Resource:
             self.rt[k] = self.rt[k-1] + self.rtcm[k] 
         if self.time[k] < self.pyear:
             self.rt[k] = self.rt[k-1]
+        
+        
+        #sehr hässliche Lösung
+        #if self.rt[k] < 0.21:
+            #self.rt[k] = 0.21
             
         
        
@@ -458,8 +471,10 @@ class Resource:
             self.rt[0] = 1
             self.nruf[0] = 1
             
-            
+        #Reference Run
         if self.szenario == 1:
-            self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear) #Reference Run
+            self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear) 
+        
+        #Technology Run
         if self.szenario == 2:
             self.nruf[k] = self.delay3_rt(k, self.tdt)

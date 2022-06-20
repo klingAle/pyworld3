@@ -128,7 +128,14 @@ class Pollution:
         assimilation half-life [years].
     ahlm : numpy.ndarray
         assimilation half-life multiplier [].
-
+    arl : float [GHa]
+        Arable Land. Default = 0.9
+    ul : float  [GHa]
+        Urban Land. Default = 8.2e-4
+    ghup : float [GHa]
+        GHa per Unit of Pollution. Default = 4e-9
+    abl : numpy.ndarray [Gha]
+        Absorbtion Land in Gha
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
@@ -146,7 +153,7 @@ class Pollution:
     def init_pollution_constants(self, ppoli=2.5e7, ppol70=1.36e8, ahl70=1.5,
                                  amti=1, imti=10, imef=0.1, fipm=0.001,
                                  frpm=0.02, ppgf1=1, ppgf2=1, ppgf21=1,
-                                 pptd1=20, pptd2=20):
+                                 pptd1=20, pptd2=20, arl = 0.9, ul = 8.2e-4, ghup= 4e-9):
         """
         Initialize the constant parameters of the pollution sector. Constants
         and their unit are documented above at the class level.
@@ -165,7 +172,13 @@ class Pollution:
         self.ppgf21 = ppgf21
         self.pptd1 = pptd1
         self.pptd2 = pptd2
-
+        
+        #neu hinzugefügt
+        self.arl = arl
+        self.ul = ul
+        self.ghup = ghup
+        
+ 
     def init_pollution_variables(self):
         """
         Initialize the state and rate variables of the pollution sector
@@ -184,6 +197,10 @@ class Pollution:
         self.pptd = np.full((self.n,), np.nan)
         self.ahlm = np.full((self.n,), np.nan)
         self.ahl = np.full((self.n,), np.nan)
+        
+        #neu hinzugefügt
+        self.abl = np.full((self.n,), np.nan)
+        self.ef = np.full((self.n,), np.nan)
 
     def set_pollution_delay_functions(self, method="euler"):
         """
@@ -392,6 +409,10 @@ class Pollution:
         self._update_ahlm(0)
         self._update_ahl(0)
         self._update_ppasr(0, 0)
+        
+        #neu hinzugefügt
+        self._update_abl(0)
+        self._update_ef(0)
 
     def loopk_pollution(self, j, k, jk, kl, alone=False):
         """
@@ -418,9 +439,10 @@ class Pollution:
         self._update_ahl(k)
         self._update_ppasr(k, kl)
         
-        print(self.ppapr[k])
-        print(self.pptd[k])
-        print("Hello World")
+        #neu hinzugefügt
+        self._update_abl(k)
+        self._update_ef(k)
+
 
     def run_pollution(self):
         """
@@ -522,3 +544,20 @@ class Pollution:
         From step k requires: AHL PPOL
         """
         self.ppasr[kl] = self.ppol[k] / (self.ahl[k] * 1.4)
+    
+    #neu hinzugefügt
+    @requires(["ppgr"])
+    def _update_abl(self,k):
+        """
+        From step k requires: ppgr
+        """
+        self.abl[k] = self.ppgr[k] * self.ghup
+        
+     #neu hinzugefügt
+    @requires (["abl"])
+    def _update_ef(self,k):
+        """
+        From step k requires: abl
+        """
+        self.ef[k] = (self.arl + self.ul + self.abl[k])/1.91
+

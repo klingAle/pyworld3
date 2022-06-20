@@ -8,7 +8,7 @@ from pyworld3.utils import plot_world_variables
 params = {'lines.linewidth': '3'}
 plt.rcParams.update(params)
 
-world3 = World3()
+world3 = World3(szenario=1)
 world3.init_world3_constants()
 world3.init_world3_variables()
 world3.set_world3_table_functions()
@@ -44,3 +44,20 @@ plot_world_variables(world3.time,
                      figsize=(7, 5),
                      title="World3 standard run - Agriculture sector")
 plt.savefig("fig_world3_standard_c.pdf")
+
+#print(world3.rt)
+#print(world3.nruf)
+#print(world3.rtc)
+
+
+plot_world_variables(world3.time,
+                     [world3.nruf, world3.rt, world3.rtc],
+                     ["NRUF", "RT", "RTC"],
+                     [[-1, 2], [-1, 2],[-4,5]],
+                     figsize=(7, 5), title="NRUF+RT")
+
+plot_world_variables(world3.time,
+                     [world3.ef],
+                     ["EF"],
+                     [[0, 2]],
+                     figsize=(7, 5), title="Ecological Footprint")
