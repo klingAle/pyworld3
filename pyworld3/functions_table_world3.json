@@ -1148,7 +1148,7 @@
  },
  {
   "sector": "Resource",
-  "x.name": "RTC",
+  "x.name": "RTCR",
   "x.values": [
     -10,
     -1,

@@ -104,18 +104,12 @@ class Resource:
     New Varibles(2004):
     druf : float
         Desired Resource Utilization Factor[resource units]. The default is 4.8e9.
-    rtc : numpy.ndarray
-        Res Tech Change
-=======
-
-    New attributes
     tdt : float, optional
         Technology development time [years]. Default is 20 years.
     rt : numpy array
         Res Tech; Stock []
-    rtcr : numpy array
-        Resource Technology Change Rate
->>>>>>> Stashed changes
+    rtc : numpy array
+        Resource Technology Change
     rtcm : numpy.ndarray
         Resource Technology Change Multiplier
     rtcr : numpy.ndarray
@@ -145,6 +139,7 @@ class Resource:
         and their unit are documented above at the class level.
 
         """
+        
         self.nri = nri
         self.nruf1 = nruf1
         self.nruf2 = nruf2
@@ -247,10 +242,6 @@ class Resource:
         self.fioac = 0.43
         self.alic = 14
         self.icor = 3
-        
-        #neu hinzugefügt:
-        self.rt[0] = 1
-        self.nruf[0] = 1
         
         # variables
         self.pop = np.full((self.n,), np.nan)
@@ -407,9 +398,7 @@ class Resource:
         """
         From step k requires: nrur
         """
-        #Formeln und Variablen aus Inside Maker
-     
-        #rtc = 1-(nrur/druf) 
+
         self.rtc[k] = 1-(self.nrur[k]/self.druf)
 
     @requires (["rtc"])
@@ -417,59 +406,29 @@ class Resource:
         """
         From step k requires: rtc
         """
-        #Formeln und Variablen aus Inside Maker
         
-        #rtcm: wenn, rtc < -1 dann rtcm = -0.04, wenn -1 < rtc < 0 dann rtcm = rtc*-0.04, wenn rtc > 0 dann rtcm = 0
-        
-        
-        if self.rtc[k] <= -1:
-            self.rtcm[k] = -0.04
-        if self.rtc[k] >= 0:
-            self.rtcm[k] = 0
-        if self.rtc[k] > -1 and self.rtc[k] < 0:
-            self.rtcm[k] = self.rtc[k] * -0.04
-        
-        #irgentwas stimmt mit der json file nicht
-        #self.rtcm[k] = self.rtcm_f(self.rtc[k])     
-            
+        #tablefunction/json file
+        self.rtcm[k] = self.rtcm_f(self.rtc[k])     
     
     @requires (["rtcm"])
     def _update_rt(self,k):
         """
         From step k requires: rtcm
         """
-        #Formeln und Variablen aus Inside Maker
-        
-        #setzten des Anfangswertes, habe ich in der Deklarierung "init_exogenous_inputs" schon gemacht aber hat anscheinend nicht funktioniert
-        if k == 0:
-            self.rt[0] = 1
-            self.nruf[0] = 1
             
-        #rt = rt * rtcm, wenn policy change year erreicht ist (pyear) ODER rtcr = rtcm* rt aber wie wird dieser Wert dann auf rt hinzugerechnet?
         if self.time[k] >= self.pyear:
-            self.rt[k] = self.rt[k-1] + self.rtcm[k] 
+            self.rt[k] = self.rt[k-1]+ (self.rt[k-1] * self.rtcm[k]) 
         if self.time[k] < self.pyear:
             self.rt[k] = self.rt[k-1]
-        
-        
-        #sehr hässliche Lösung
-        if self.rt[k] < 0.21:
-            self.rt[k] = 0.21
-            
-        
-       
+            #setzten des Anfangswertes
+            if k == 0:
+                self.rt[0] = 1
     
     @requires (["rt"])
     def _update_nruf(self,k):
         """
         From step k requires: rt
         """
-        #Formeln und Variablen aus Inside Maker
-        
-        #setzten des Anfangswertes, habe ich in der Deklarierung "init_exogenous_inputs" schon gemacht aber hat anscheinend nicht funktioniert
-        if k == 0:
-            self.rt[0] = 1
-            self.nruf[0] = 1
             
         #Reference Run
         if self.szenario == 1:
@@ -478,3 +437,7 @@ class Resource:
         #Technology Run
         if self.szenario == 2:
             self.nruf[k] = self.delay3_rt(k, self.tdt)
+                
+        #sehr hässliche Lösung
+        if k < 120:
+            self.nruf[k] = 1

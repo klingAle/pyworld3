@@ -23,7 +23,6 @@ plot_world_variables(world3.time,
                      img_background="./img/fig7-7.png",
                      figsize=(7, 5),
                      title="World3 standard run")
-plt.savefig("fig_world3_standard_a.pdf")
 
 plot_world_variables(world3.time,
                      [world3.fcaor, world3.io, world3.tai, world3.aiph,
@@ -33,7 +32,6 @@ plot_world_variables(world3.time,
                      img_background="./img/fig7-8.png",
                      figsize=(7, 5),
                      title="World3 standard run - Capital sector")
-plt.savefig("fig_world3_standard_b.pdf")
 
 plot_world_variables(world3.time,
                      [world3.ly, world3.al, world3.fpc, world3.lmf,
@@ -43,21 +41,17 @@ plot_world_variables(world3.time,
                      img_background="./img/fig7-9.png",
                      figsize=(7, 5),
                      title="World3 standard run - Agriculture sector")
-plt.savefig("fig_world3_standard_c.pdf")
-
-#print(world3.rt)
-#print(world3.nruf)
-#print(world3.rtc)
-
-
-plot_world_variables(world3.time,
-                     [world3.nruf, world3.rt, world3.rtc],
-                     ["NRUF", "RT", "RTC"],
-                     [[-1, 2], [-1, 2],[-4,5]],
-                     figsize=(7, 5), title="NRUF+RT")
 
 plot_world_variables(world3.time,
                      [world3.ef, world3.hwi],
                      ["EF", "HWI"],
                      [[0, 2], [0,1]],
-                     figsize=(7, 5), title="Ecological Footprint+ Human Welfare Index")
+                     figsize=(7, 5), title="Ecological Footprint + Human Welfare Index")
+
+plot_world_variables(world3.time,
+                     [world3.nruf, world3.rt],
+                     ["NRUF", "RT"],
+                     [[-1, 2], [-1, 2]],
+                     figsize=(7, 5), title="NRUF+RT")
+
+

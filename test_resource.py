@@ -19,9 +19,10 @@ plot_world_variables(rsc.time,
 plot_world_variables(rsc.time,
                      [rsc.nruf, rsc.rt],
                      ["NRUF", "RT"],
-                     [[0, 1.5], [0, 1.5]],
+                     [[-1, 1.5], [-1, 1.5]],
                      figsize=(7, 5), title="NRUF+RT")
 
 print(rsc.nruf)
+print("Res Tech:")
 print(rsc.rt)
 print('pyworld3_03 Update Version')
