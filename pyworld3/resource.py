@@ -200,7 +200,7 @@ class Resource:
         with open(json_file) as fjson:
             tables = json.load(fjson)
 
-        func_names = ["PCRUM", "FCAOR1", "FCAOR2", "RTCR"]  # added RTCR
+        func_names = ["PCRUM", "FCAOR1", "FCAOR2", "RTCM"]  # added RTCM
 
         for func_name in func_names:
             for table in tables:
@@ -282,6 +282,7 @@ class Resource:
             is False.
 
         """
+        print("Starting loop 0")
         self.nr[0] = self.nri
         self._update_nrfr(0)
         self._update_fcaor(0)
@@ -290,6 +291,14 @@ class Resource:
         self._update_nruf(0)
         self._update_pcrum(0)
         self._update_nrur(0, 0)
+
+        #ab hier neue
+        self._update_ret(0,0)
+        self._update_nruf2(0)
+        self._update_rtc(0)
+        self._update_rtcm(0)
+        self._update_rtcr(0)
+
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
         """
@@ -360,12 +369,12 @@ class Resource:
         self.fcaor[k] = clip(self.fcaor2[k], self.fcaor1[k], self.time[k],
                              self.pyear)
 
-    @requires(["nruf"])
+    @requires(["nruf", "nruf2"])
     def _update_nruf(self, k):
         """
         From step k requires: nothing
         """
-        self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
+        self.nruf[k] = clip(self.nruf2[k], self.nruf1, self.time[k], self.pyear)
 
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
@@ -383,7 +392,7 @@ class Resource:
 
     # ______Ab hier neue updates
 
-    @requires(["ret"])
+    @requires(["ret"], ["ret", "rtcr"])
     def _update_ret(self, j, k):
         '''
         ret: state variable similar to nr
@@ -392,9 +401,11 @@ class Resource:
         k
         j: previous step
         '''
-        self.ret[k] = self.ret[j] + self.ret[k] * self.rtcr[k]
+        self.ret[k] = self.ret[j] + self.ret[j] * self.rtcr[k]
+        if k == 0:
+            self.ret[0] = 1
 
-    @requires(["nruf2"], ["tdt", "ret"], check_after_init=False)
+    @requires(["nruf2"], ["ret"], check_after_init=True)
     def _update_nruf2(self, k):
         """
 
@@ -404,7 +415,7 @@ class Resource:
         """
         self.nruf2[k] = self.delay3_ret(k, self.tdt)
 
-    @requires(["rtcr"], ["ret"])
+    @requires(["rtcr"], ["ret","rtcm"])
     def _update_rtcr(self, k):
         '''
 
@@ -412,7 +423,7 @@ class Resource:
         ----------
         k
         '''
-        self.rtcr = clip(self.ret * self.rtcm, 0, self.pyear)
+        self.rtcr[k] = clip(self.ret[k] * self.rtcm[k], 0, self.time[k], self.pyear)
 
     @requires(["rtcm"], ["rtc"])
     def _update_rtcm(self, k):
@@ -421,6 +432,6 @@ class Resource:
         """
         self.rtcm[k] = self.rtcm_f(self.rtc[k])
 
-    @requires(["rtc"],["nrur", "drur"])
+    @requires(["rtc"], ["nrur"])
     def _update_rtc(self, k):
         self.rtc[k] = self.nrur[k] / self.drur
