@@ -321,7 +321,7 @@ class Resource:
         self._update_nrur(k, kl)
 
         #___ab hier neue Update Funktionen
-        self._update_ret(j,k)
+        self._update_ret(j, k)
         self._update_nruf2(k)
         self._update_rtcr(k)
         self._update_rtcm(k)
@@ -340,6 +340,7 @@ class Resource:
         for k_ in range(1, self.n):
             self.redo_loop = True
             while self.redo_loop:
+                print("Loop {}".format(k_))
                 self.redo_loop = False
                 if self.verbose:
                     print("go loop", k_)
@@ -392,7 +393,7 @@ class Resource:
 
     # ______Ab hier neue updates
 
-    @requires(["ret"], ["ret", "rtcr"])
+    @requires(["ret"])
     def _update_ret(self, j, k):
         '''
         ret: state variable similar to nr
@@ -401,11 +402,11 @@ class Resource:
         k
         j: previous step
         '''
-        self.ret[k] = self.ret[j] + self.ret[j] * self.rtcr[k]
+        self.ret[k] = self.ret[j] + self.ret[j] * self.rtcr[j]
         if k == 0:
             self.ret[0] = 1
 
-    @requires(["nruf2"], ["ret"], check_after_init=True)
+    @requires(["nruf2"], ["ret"])
     def _update_nruf2(self, k):
         """
 
@@ -415,7 +416,7 @@ class Resource:
         """
         self.nruf2[k] = self.delay3_ret(k, self.tdt)
 
-    @requires(["rtcr"], ["ret","rtcm"])
+    @requires(["rtcr"], ["ret", "rtcm"])
     def _update_rtcr(self, k):
         '''
 
