@@ -138,7 +138,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.init_pollution_constants(ppoli, ppol70, ahl70, amti, imti, imef,
                                       fipm, frpm, ppgf1, ppgf2, ppgf21, pptd1,
                                       pptd2)
-        self.init_resource_constants(nri, nruf1, nruf2, druf, tdt)
+        self.init_resource_constants(nri, nruf1, druf, tdt)
 
     def init_world3_variables(self):
         """

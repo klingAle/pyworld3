@@ -2,10 +2,10 @@ import pyworld3.resource as re
 from pyworld3.utils import plot_world_variables
 
 
-rsc = re.Resource(szenario = 2)
+rsc = re.Resource()
 rsc.set_resource_table_functions()
 rsc.init_resource_variables()
-rsc.init_resource_constants()
+rsc.init_resource_constants(tdt = 20)
 rsc.set_resource_delay_functions()
 rsc.init_exogenous_inputs()
 rsc.run_resource()
@@ -17,12 +17,18 @@ plot_world_variables(rsc.time,
                      figsize=(7, 5), title="Solo Resources")
 
 plot_world_variables(rsc.time,
-                     [rsc.nruf, rsc.rt],
-                     ["NRUF", "RT"],
-                     [[-1, 1.5], [-1, 1.5]],
+                     [rsc.rt, rsc.nruf2,rsc.nruf],
+                     ["RT", "NRUF2", "NRUF"],
+                     [[-1, 1.5], [-1, 2], [-1,1.5]],
                      figsize=(7, 5), title="NRUF+RT")
 
+
+
+
+print("NRUF:")
 print(rsc.nruf)
+print("NRUF2:")
+print(rsc.nruf2)
 print("Res Tech:")
 print(rsc.rt)
 print('pyworld3_03 Update Version')

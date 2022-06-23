@@ -117,7 +117,7 @@ class Resource:
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
-                 verbose=False, szenario = 2): # szenario: 1 = standard run, 2 = technology run
+                 verbose=False):
         self.pyear = pyear
         self.dt = dt
         self.year_min = year_min
@@ -126,14 +126,9 @@ class Resource:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
-        self.szenario = szenario
-        print('Using local edit of pyworld3')
-        if  self.szenario == 1:
-            print("Szenario: standard run")
-        if self.szenario == 2:
-            print("Szenario: technology run")
 
-    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1, druf = 4.8e9, tdt = 20):
+
+    def init_resource_constants(self, nri=1e12, nruf1=1, druf = 4.8e9, tdt = 20):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
@@ -142,7 +137,7 @@ class Resource:
         
         self.nri = nri
         self.nruf1 = nruf1
-        self.nruf2 = nruf2
+
         
         #neu hinzugefügt:
         self.druf = druf
@@ -169,6 +164,8 @@ class Resource:
         self.rtcm = np.full((self.n,), np.nan)
         self.rt = np.full((self.n,), np.nan)
         self.rtm = np.full((self.n,), np.nan)
+        self.nruf2 = np.full((self.n,), np.nan)
+        #wenn den tdt umzustellen nichts bringt, kann hier eine if funktion eingefügt werden
 
     def set_resource_delay_functions(self, method="euler"):
         """
@@ -185,7 +182,7 @@ class Resource:
         """
         
         #neu hinzugefügt:
-        var_delay3 = ["rt"]
+        var_delay3 = ["rt","nruf2","tdt"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
@@ -304,10 +301,10 @@ class Resource:
         self._update_pcrum(0)
         self._update_nrur(0, 0)
         #neu hinzugefügt:
-        if self.szenario == 2:
-            self._update_rtc(0)
-            self._update_rtcm(0)
-            self._update_rt(0)
+        self._update_rtc(0)
+        self._update_rtcm(0)
+        self._update_rt(0)
+        self._update_nruf2(0)
         self._update_nruf(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
@@ -330,10 +327,10 @@ class Resource:
         self._update_nrur(k, kl)
         
         #neu hinzugefügt:
-        if self.szenario == 2:
-            self._update_rtc(k)
-            self._update_rtcm(k)
-            self._update_rt(k)
+        self._update_rtc(k)
+        self._update_rtcm(k)
+        self._update_rt(k)
+        self._update_nruf2(k)
         self._update_nruf(k)
 
     def run_resource(self):
@@ -425,19 +422,22 @@ class Resource:
                 self.rt[0] = 1
     
     @requires (["rt"])
-    def _update_nruf(self,k):
+    def _update_nruf2(self,k):
         """
         From step k requires: rt
         """
-            
-        #Reference Run
-        if self.szenario == 1:
-            self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear) 
+    
+        self.nruf2[k] = self.delay3_rt(k, self.tdt)
         
-        #Technology Run
-        if self.szenario == 2:
-            self.nruf[k] = self.delay3_rt(k, self.tdt)
-                
-        #sehr hässliche Lösung
-        if k < 120:
-            self.nruf[k] = 1
+        #sehr hässliche lösung
+        #if k < 100:
+            #self.nruf2[k] = 1
+            
+    @requires (["nruf2"])
+    def _update_nruf(self,k):
+        """
+        From step k requires: nruf2
+        """
+    
+        self.nruf[k] = clip(self.nruf2[k], self.nruf1, self.time[k], self.pyear)
+        
