@@ -8,3 +8,4 @@ dist/
 # pdf files
 *.pdf
 .DS_Store
+pyworld3/resource.py
