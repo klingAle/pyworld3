@@ -72,6 +72,8 @@ class Resource:
         time step of the simulation [year]. The default is 1.
     pyear : float, optional
         implementation date of new policies [year]. The default is 1975.
+    pyear_res_tech : float, optional
+        implementaion date of resource tech [year]. The default is 4000.
     verbose : bool, optional
         print information for debugging. The default is False.
 
@@ -116,9 +118,10 @@ class Resource:
         Res Tech Change Rate
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
+    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_res_tech = 4000,
                  verbose=False):
         self.pyear = pyear
+        self.pyear_res_tech  = pyear_res_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -413,9 +416,9 @@ class Resource:
         From step k requires: rtcm
         """
             
-        if self.time[k] >= self.pyear:
+        if self.time[k] >= self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]+ (self.rt[k-1] * self.rtcm[k]) 
-        if self.time[k] < self.pyear:
+        if self.time[k] < self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]
             #setzten des Anfangswertes
             if k == 0:

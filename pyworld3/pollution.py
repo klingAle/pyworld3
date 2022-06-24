@@ -128,6 +128,7 @@ class Pollution:
         assimilation half-life [years].
     ahlm : numpy.ndarray
         assimilation half-life multiplier [].
+    #neu hinzugefügt:
     arl : float [GHa]
         Arable Land. Default = 0.9
     ul : float  [GHa]
@@ -136,6 +137,8 @@ class Pollution:
         GHa per Unit of Pollution. Default = 4e-9
     abl : numpy.ndarray [Gha]
         Absorbtion Land in Gha
+    ef : numpy.ndarray
+        Ecological Footprint
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,

@@ -91,10 +91,11 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975,
-                 iphst=1940, verbose=False, szenario = 2):
+    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000,
+                 iphst=1940, verbose=False):
         self.iphst = iphst
         self.pyear = pyear
+        self.pyear_res_tech = pyear_res_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -102,7 +103,6 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.n = int(self.length / self.dt) + 1
         self.time = arange(self.year_min, self.year_max + self.dt, self.dt)
         self.verbose = False
-        self.szenario = szenario
 
     def init_world3_constants(self, p1i=65e7, p2i=70e7, p3i=19e7, p4i=6e7,
                               dcfsn=4, fcest=4000, hsid=20, ieat=3, len=28,
