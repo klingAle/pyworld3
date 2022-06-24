@@ -1229,6 +1229,7 @@
   "sector": "Pollution",
   "x.name": "PPOLX",
   "x.values": [
+   -246,
    1.0,
    251.0,
    501.0,
@@ -1238,10 +1239,127 @@
   "y.name": "AHLM",
   "y.values": [
    1.0,
+   1.0,
    11.0,
    21.0,
    31.0,
    41.0
+  ]
+ }
+ ,
+ {
+  "sector": "Pollution",
+  "x.name": "FIO70",
+  "x.values": [
+    0,
+    10,
+    20,
+    30
+  ],
+  "y.name": "YMAP1",
+  "y.values": [
+    1,
+    1,
+    0.7,
+    0.4
+  ]
+ }
+ ,
+ {
+  "sector": "Pollution",
+  "x.name": "FIO70",
+  "x.values": [
+    0,
+    10,
+    20,
+    30
+  ],
+  "y.name": "YMAP2",
+  "y.values": [
+    1,
+    1,
+    0.98,
+    0.95
+  ]
+ }
+ ,
+ {
+  "sector": "Pollution",
+  "x.name": "PPTC",
+  "x.values": [
+    -100,
+    -1,
+    0,
+    1
+  ],
+  "y.name": "PPTCM",
+  "y.values": [
+    -0.04,
+    -0.04,
+    0,
+    0
+  ]
+ }
+ ,
+ {
+  "sector": "Pollution",
+  "x.name": "PPGF",
+  "x.values": [
+    0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1,
+    2
+  ],
+  "y.name": "PPTMI",
+  "y.values": [
+    1.25,
+    1.2,
+    1.15,
+    1.11,
+    1.08,
+    1.05,
+    1.03,
+    1.02,
+    1.01,
+    1,
+    1,
+    1
+  ]
+ }
+ ,
+ {
+  "sector": "Pollution",
+  "x.name": "IOPC",
+  "x.values": [
+    0,
+    200,
+    400,
+    600,
+    800,
+    1000,
+    1200,
+    1400,
+    1600
+  ],
+  "y.name": "PCRUM",
+  "y.values": [
+    0,
+    0.85,
+    2.6,
+    3.4,
+    3.8,
+    4.1,
+    4.4,
+    4.7,
+    5
   ]
  }
 ]
