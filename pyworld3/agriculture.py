@@ -458,7 +458,7 @@ class Agriculture:
 
     def loop0_agriculture(self, alone=False):
         """
-        Run a sequence to initialize the population sector (loop with k=0).
+        Run a sequence to initialize agricultur sector (loop with k=0).
 
         Parameters
         ----------
@@ -628,7 +628,10 @@ class Agriculture:
         """
         From step k requires: LY AL
         """
-        self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
+        if k == 0:
+            self.f[0] = 430920000000.0
+        else:
+            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl) # wird nicht berechnet
 
     @requires(["fpc"], ["f", "pop"])
     def _update_fpc(self, k):

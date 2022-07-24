@@ -568,6 +568,7 @@ class Population:
         self._update_state_p3(k, j, jk)
         self._update_state_p4(k, j, jk)
         self._update_pop(k)
+        
         if alone:
             self.loopk_exogenous(k)
         # Death rate subsector
@@ -649,8 +650,8 @@ class Population:
         """
         State variable, requires previous step only
         """
-        self.p1[k] = self.p1[j] + self.dt*(self.b[jk] - self.d1[jk]
-                                           - self.mat1[jk])
+        self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1]
+                                           - self.mat1[k-1])
 
     @requires(["p2"])
     def _update_state_p2(self, k, j, jk):

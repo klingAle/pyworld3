@@ -37,7 +37,7 @@ from numpy import arange
 from .population import Population
 from .capital import Capital
 from .agriculture import Agriculture
-from .pollution import Pollution
+from .pollution_update import Pollution
 from .resource import Resource
 
 
@@ -93,6 +93,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
     def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000,
                  iphst=1940, verbose=False):
+        print("using updated version of world3")
         self.iphst = iphst
         self.pyear = pyear
         self.pyear_res_tech = pyear_res_tech
@@ -113,13 +114,20 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               scor2=1, alic1=14, alic2=14, alsc1=20, alsc2=20,
                               fioac1=0.43, fioac2=0.43,
                               ali=0.9e9, pali=2.3e9, lfh=0.7, palt=3.2e9,
-                              pl=0.1, alai1=2, alai2=2, io70=7.9e11, lyf1=1,
+                              pl=0.1, alai1=2, alai2=2, lyf1=1,
                               lyf2=1, sd=0.07, uili=8.2e6, alln=6000, uildt=10,
                               lferti=600, ilf=600, fspd=2, sfpc=230,
-                              ppoli=2.5e7, ppol70=1.36e8, ahl70=1.5, amti=1,
-                              imti=10, imef=0.1, fipm=0.001, frpm=0.02,
-                              ppgf1=1, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
-                              nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20):
+                              ppoli=2.5e7, ppol70=1.36e8,
+                              fipm=0.001, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
+                              nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20,
+                              pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1
+                              ,imti = 10 ,frpm = 0.02 ,arl = 0.9 ,url = 8.2e-4
+                              ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
+                              ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 , ppgf1 = 1 ):
+   #neue konstanten hinzugefügt. Ich muss noch die alten entfernen     
+        
+                                     
+        
         """
         Initialize the constant parameters of the 5 sectors. Constants and
         their unit are defined in the documentation of the corresponding
@@ -135,9 +143,9 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.init_agriculture_constants(ali, pali, lfh, palt, pl, alai1, alai2,
                                         io70, lyf1, lyf2, sd, uili, alln,
                                         uildt, lferti, ilf, fspd, sfpc)
-        self.init_pollution_constants(ppoli, ppol70, ahl70, amti, imti, imef,
-                                      fipm, frpm, ppgf1, ppgf2, ppgf21, pptd1,
-                                      pptd2)
+        self.init_pollution_constants(pp19 , apct , io70 ,imef ,imti ,frpm
+                                      ,arl ,url ,ghup ,faipm ,amti ,pptd
+                                      ,ahl70 ,pp70 , dppolx, tdt, ppgf1)
         self.init_resource_constants(nri, nruf1, druf, tdt)
 
     def init_world3_variables(self):
@@ -206,23 +214,47 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
             self._run_world3_fast()
         else:
             self._run_world3()
+            
 
     def _run_world3(self):
         """
         Run an unsorted sequence of updates of the 5 sectors, and reschedules
         each loop computation until all variables are computed.
+        
+        Ich habe die "loop_redo entfernt"
 
         """
+
+        self.loop0_population()
+        self.loop0_capital()
+        self.loop0_agriculture()
+        self.loop0_pollution()
+        self.loop0_resource()
+
+
+        for k_ in range(1, self.n):
+            if self.verbose:
+                print("go loop", k_)
+            self.loopk_population(k_-1, k_, k_-1, k_)
+            self.loopk_capital(k_-1, k_, k_-1, k_)
+            self.loopk_agriculture(k_-1, k_, k_-1, k_)
+            self.loopk_pollution(k_-1, k_, k_-1, k_)
+            self.loopk_resource(k_-1, k_, k_-1, k_)
+                
+                
+        """   
+                
         self.redo_loop = True
-        while self.redo_loop:
-            self.redo_loop = False
+        while self.redo_loop == True:
             self.loop0_population()
             self.loop0_capital()
             self.loop0_agriculture()
             self.loop0_pollution()
             self.loop0_resource()
+            self.redo_loop = False
 
         for k_ in range(1, self.n):
+            print("loopk")
             self.redo_loop = True
             while self.redo_loop:
                 self.redo_loop = False
@@ -233,6 +265,8 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                 self.loopk_agriculture(k_-1, k_, k_-1, k_)
                 self.loopk_pollution(k_-1, k_, k_-1, k_)
                 self.loopk_resource(k_-1, k_, k_-1, k_)
+                
+        """
 
     def _run_world3_fast(self):
         """
@@ -258,6 +292,9 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         """
         Run a sorted sequence to update one loop of World3 with
         no checking and no rescheduling [unsafe].
+        
+        mit neuen funktionen ergänzen
+        
 
         """
         self._update_state_p1(k, j, jk)

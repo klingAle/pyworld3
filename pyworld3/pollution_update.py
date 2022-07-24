@@ -111,7 +111,7 @@ class Pollution:
         Assimilation half life 1970. Default is 1.5
     pp70: float
         Persistent pollution in 1970. Default is 1.36e8
-    dppi : float
+    dppolx : float
         Desired persistent pollution index. Default is 1.2
     tdt : float [years]
         Technology development time. Default is 20 
@@ -142,6 +142,8 @@ class Pollution:
         Persistent pollution generation rate
     ppar : numpy.ndarray
         Persistent Pollution appear rate. #in insidemaker sind das 2 blöcke
+    ppasr : numpy.ndarray
+        Persistent Pollution assimilation rate
     pp : numpy.ndarray
         Persistent pollution
     ppasr : numpy.ndarray
@@ -150,7 +152,7 @@ class Pollution:
         Assimilation half life
     ahlm : numpy.ndarray
         Assimilation half life multiplier
-    ppi : numpy.ndarray
+    ppolx : numpy.ndarray
         Persistent Pollution Index
     pptc : numpy.ndarray
         Persistent Pollution Tech Change
@@ -177,6 +179,7 @@ class Pollution:
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
                  verbose=False):
+        print("using updated version of pollution sector")
         self.pyear = pyear
         self.dt = dt
         self.year_min = year_min
@@ -187,15 +190,15 @@ class Pollution:
         self.time = np.arange(self.year_min, self.year_max, self.dt)
         print('Using local edit of pyworld3')
 
-    def init_pollution_constants(self, apct = 4000, io70 = 7.9e11 ,imef = 0.1 ,imti = 10 ,frpm = 0.02
+    def init_pollution_constants(self,pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1 ,imti = 10 ,frpm = 0.02
                                  ,arl = 0.9 ,url = 8.2e-4 ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
-                                 ,ahl70 = 1.5 ,pp70 = 1.36e8, dppi = 1.2 ,tdt = 20):
+                                 ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20, ppgf1 = 1):
         """
         Initialize the constant parameters of the pollution sector. Constants
         and their unit are documented above at the class level.
 
         """
-        
+        self.pp19 = pp19
         self.apct = apct
         self.io70 = io70
         self.imef = imef
@@ -209,8 +212,10 @@ class Pollution:
         self.pptd = pptd
         self.ahl70 = ahl70
         self.pp70 = pp70
-        self.dppi = dppi
+        self.dppolx = dppolx
         self.tdt= tdt
+        self.ppgf1 = ppgf1
+        print("using updated version of pollution sector")
  
     def init_pollution_variables(self):
         """
@@ -232,17 +237,17 @@ class Pollution:
         self.ppga = np.full((self.n,), np.nan)
         self.ppgr = np.full((self.n,), np.nan)
         self.ppar = np.full((self.n,), np.nan)
+        self.ppasr = np.full((self.n,), np.nan)
         self.pp = np.full((self.n,), np.nan)
         self.ppasr = np.full((self.n,), np.nan)
         self.ahl = np.full((self.n,), np.nan)
         self.ahlm = np.full((self.n,), np.nan)
-        self.ppi = np.full((self.n,), np.nan)
+        self.ppolx = np.full((self.n,), np.nan)
         self.pptc = np.full((self.n,), np.nan)
         self.pptcm = np.full((self.n,), np.nan)
         self.pptcr = np.full((self.n,), np.nan)
         self.ppt = np.full((self.n,), np.nan)
-        self.ppgf1 = np.full((self.n,), np.nan)
-        self.ppgf2 = np.full((self.n,), np.nan)
+        self.ppgf2 = np.full((self.n,), 1.0) # da der neue Pollution sektor ein loop ist, muss für den durchlauf werte vorgegeben werden
         self.ppgf = np.full((self.n,), np.nan)
         self.pptmi = np.full((self.n,), np.nan)
         self.abl = np.full((self.n,), np.nan)
@@ -262,7 +267,7 @@ class Pollution:
             "euler".
 
         """
-        var_delay3 = ["PPGR", "PPGR2", "PPT","PPAR"]
+        var_delay3 = ["PPGR", "PPT","PPAR", "PPGF2", "PPTD"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
@@ -307,6 +312,9 @@ class Pollution:
         self.swat = 0
         self.tdd = 10
         self.pd = 5
+        self.cio = 100
+        self.lt = self.year_min + 500
+        self.lt2 = self.year_min + 500
         # variables
         self.pcrum = np.full((self.n,), np.nan)
         self.pop = np.full((self.n,), np.nan)
@@ -323,6 +331,13 @@ class Pollution:
         self.lfdr1 = np.full((self.n,), np.nan)
         self.lfdr2 = np.full((self.n,), np.nan)
         self.ppgf22 = np.full((self.n,), np.nan)
+        #neu hinzugefügt
+        self.io = np.full((self.n,), np.nan)
+        self.io1 = np.full((self.n,), np.nan)
+        self.io11 = np.full((self.n,), np.nan)
+        self.io12 = np.full((self.n,), np.nan)
+        self.io2 = np.full((self.n,), np.nan)
+        self.iopc = np.full((self.n,), np.nan)
         # tables
         func_names = ["PCRUM", "POP", "AIPH", "AL", "PCTCM", "LMP1", "LMP2",
                       "LFDR1", "LFDR2"]
@@ -381,8 +396,8 @@ class Pollution:
         self.aiph[k] = self.aiph_f(self.time[k])
         self.al[k] = self.al_f(self.time[k])
 
-        self.ppgf22[k] = self.dlinf3_pcti(k, self.tdd)
-        self.ppgf2 = switch(self.ppgf21, self.ppgf22[k], self.swat)
+        #self.ppgf22[k] = self.dlinf3_pcti(k, self.tdd)
+        #self.ppgf2 = switch(self.ppgf21, self.ppgf22[k], self.swat)
 
         self.plmp[k] = self.dlinf3_lmp(k, self.pd)
         self.pctcm[k] = self.pctcm_f(1 - self.plmp[k])
@@ -390,14 +405,24 @@ class Pollution:
         self.pctir[kl] = clip(self.pcti[k] * self.pctcm[k], 0, self.time[k],
                               self.pyear)
 
-        self.lmp1[k] = self.lmp1_f(self.ppolx[k])
-        self.lmp2[k] = self.lmp2_f(self.ppolx[k])
-        self.lmp[k] = clip(self.lmp2[k], self.lmp1[k], self.time[k],
-                           self.pyear)
-        self.lfdr1[k] = self.lfdr1_f(self.ppolx[k])
-        self.lfdr2[k] = self.lfdr1_f(self.ppolx[k])
-        self.lfdr[k] = clip(self.lfdr2[k], self.lfdr1[k], self.time[k],
-                            self.pyear)
+        #self.lmp1[k] = self.lmp1_f(self.ppolx[k])
+        #self.lmp2[k] = self.lmp2_f(self.ppolx[k])
+        #self.lmp[k] = clip(self.lmp2[k], self.lmp1[k], self.time[k],
+        #                  self.pyear)
+        #self.lfdr1[k] = self.lfdr1_f(self.ppolx[k])
+        #self.lfdr2[k] = self.lfdr1_f(self.ppolx[k])
+        #self.lfdr[k] = clip(self.lfdr2[k], self.lfdr1[k], self.time[k],
+        #                    self.pyear)
+
+        self.io11[k] = .7e11*np.exp((self.time[k] - self.year_min)*.037)
+        self.io12[k] = self.pop[k] * self.cio
+        self.io1[k] = clip(self.io12[k], self.io11[k], self.time[k], self.lt2)
+        self.io2[k] = .7e11 * np.exp(self.lt * .037)
+        self.io[k] = clip(self.io2[k], self.io1[k], self.time[k], self.lt)
+        self.iopc[k] = self.io[k] / self.pop[k]
+        
+        self.aiph[k] = (-((0.125*self.time[k])-250)**2)+160
+        
 
     def loop0_exogenous(self):
         """
@@ -411,8 +436,8 @@ class Pollution:
         self.aiph[0] = self.aiph_f(self.time[0])
         self.al[0] = self.al_f(self.time[0])
 
-        self.ppgf22[0] = self.dlinf3_pcti(0, self.tdd)
-        self.ppgf2 = switch(self.ppgf21, self.ppgf22[0], self.swat)
+        #self.ppgf22[0] = self.dlinf3_pcti(0, self.tdd)
+        #self.ppgf2 = switch(self.ppgf21, self.ppgf22[0], self.swat)
 
         self.lmp1[0] = self.lmp1_f(self.ppolx[0])
         self.lmp2[0] = self.lmp2_f(self.ppolx[0])
@@ -429,7 +454,9 @@ class Pollution:
         self.lfdr2[0] = self.lfdr1_f(self.ppolx[0])
         self.lfdr[0] = clip(self.lfdr2[0], self.lfdr1[0], self.time[0],
                             self.pyear)
-
+        
+        
+        
     def loop0_pollution(self, alone=False):
         """
         Run a sequence to initialize the pollution sector (loop with k=0).
@@ -441,7 +468,34 @@ class Pollution:
             is False.
 
         """
+        self.pp[0] = self.pp19 # startwert setzen
+        self._update_pcrum(0)
+        self._update_ppolx(0)
+        if alone:
+            self.loopk_exogenous(0)
         self._update_ppgi(0)
+        self._update_ppga(0)
+        self._update_ppgf(0)
+        self._update_ppgr(0)
+        self._update_ppar(0)
+        self._update_pp(0)
+
+        self._update_ahlm(0)
+        self._update_ahl(0)
+        self._update_ppasr(0)
+        self._update_pptc(0)
+        self._update_pptcm(0)
+        self._update_pptcr(0)
+        self._update_ppt(0)
+        self._update_ppgf2(0)
+        self._update_pptmi(0)
+        self._update_pii(0)
+        self._update_fio70(0)
+        self._update_ymap1(0)
+        self._update_ymap2(0)
+        self._update_apfay(0)
+        self._update_abl(0)
+        self._update_hef(0)
 
     def loopk_pollution(self, j, k, jk, kl, alone=False):
         """
@@ -454,11 +508,34 @@ class Pollution:
             is False.
 
         """
-        self._update_ppgi(k)
+        self._update_pcrum(k)
+        
+        self._update_ppolx(k)
         if alone:
             self.loopk_exogenous(k)
+        self._update_ppgi(k)
+        self._update_ppga(k)
+        self._update_ppgf(k)
+        self._update_ppgr(k)
+        self._update_ppar(k)
+        self._update_pp(k)
 
-
+        self._update_ahlm(k)
+        self._update_ahl(k)
+        self._update_ppasr(k)
+        self._update_pptc(k)
+        self._update_pptcm(k)
+        self._update_pptcr(k)
+        self._update_ppt(k)
+        self._update_ppgf2(k)
+        self._update_pptmi(k)
+        self._update_pii(k)
+        self._update_fio70(k)
+        self._update_ymap1(k)
+        self._update_ymap2(k)
+        self._update_apfay(k)
+        self._update_abl(k)
+        self._update_hef(k)
 
     def run_pollution(self):
         """
@@ -479,18 +556,184 @@ class Pollution:
                     print("go loop", k_)
                 self.loopk_pollution(k_-1, k_, k_-1, k_, alone=True)
 
-    @requires(["ppgi"])
-    def _update_ppgi(self, k):
+    @requires(["pcrum"])
+    def _update_pcrum(self, k):
         """
         State variable, requires previous step only
         """
+        self.pcrum[k] = self.pcrum_f(self.iopc[k]) 
+
+    @requires(["pcrum"])
+    def _update_ppgi(self, k):
+        """
+        From step k requires: pcrum
+        """
+        self.ppgi[k] = self.pcrum[k]*self.pop[k]*self.frpm*self.imef*self.imti
+    
+    @requires(["aiph"])
+    def _update_ppga(self, k):
+        """
+        From step k requires: aiph
+        """
+        self.ppga[k] = self.aiph[k]*(self.arl*1e9)*self.faipm*self.amti
+
+    @requires(["ppgf2"])
+    def _update_ppgf(self, k):
+        """
+        From step k requires: nothing
+        """
+        self.ppgf[k] = clip(self.ppgf2[k-1], self.ppgf1, self.time[k], self.pyear) #ppgf2 von den vorherigem zeitschritt
+        
+    @requires(["ppgf"],["ppga"],["ppgi"])
+    def _update_ppgr(self, k):
+        """
+        From step k requires: ppgf, ppga, ppgi
+        """
+        
+        self.ppgr[k] = self.ppgi[k] * self.ppga[k] * self.ppgf[k]
+
+    @requires(["ppgr"])
+    def _update_ppar(self, k):
+        """
+        From step k requires: ppgr
+        """
+        
+        self.ppar[k] = self.delay3_ppgr(k,self.pptd) 
+        
+    @requires(["ppar"])
+    def _update_pp(self, k):
+        """
+        From step k requires: ppar, ppasr
+        """
+        if k == 0:
+            self.pp[0] = 2.5e7
+        if k > 0:
+            self.pp[k] = self.pp[k-1] + (self.ppar[k-1] - self.ppasr[k-1])
+            """
+            hässliche lösung, noch ändern. Der Autor hat die erste initierung in der 0 loop aber bei mir klappt das nicht
+            """
+
+    @requires(["pp"])
+    def _update_ppolx(self, k):
+        """
+        From step k requires: pp
+        """
+        self.ppolx[k] = self.pp[k]/self.pp70
 
 
+    @requires(["ppolx"])
+    def _update_ahlm(self, k):
+        """
+        From step k requires: ppolx
+        """
+        self.ahlm[k] = self.ahlm_f(self.ppolx[k])
+    
+    @requires(["ahlm"])
+    def _update_ahl(self, k):
+        """
+        From step k requires: ahlm
+        """
+        self.ahl[k] = self.ahl70 * self.ahlm[k]
+
+    @requires(["ahl"])
+    def _update_ppasr(self, k):
+        """
+        From step k requires: ahl
+        """
+        self.ppasr[k] = self.pp[k]/(1.4*self.ahl[k])
+
+    @requires(["ppolx"])
+    def _update_pptc(self, k):
+        """
+        From step k requires: ppolx
+        """
+        self.pptc[k] = 1-(self.ppolx[k]/self.dppolx)
+
+    @requires(["pptc"])
+    def _update_pptcm(self, k):
+        """
+        From step k requires: pptc
+        """
+        self.pptcm[k] = self.pptcm_f(self.pptc[k]) 
+
+    @requires(["pptcm"])
+    def _update_pptcr(self, k):
+        """
+        From step k requires: pptcm
+        """
+        if self.time[k] >= self.pyear:
+            self.pptcr[k] = self.pptcm[k-1] * self.ppt[k-1]
+
+        else:
+            self.pptcr[k] = 0
+
+        
+    @requires(["pptcr"])
+    def _update_ppt(self, k):
+        """
+        From step k requires: pptcr
+        """
+        if k == 0:
+            self.ppt[k] = 1
+        if k > 0:
+            self.ppt[k] = self.ppt[k-1] + self.pptcr[k]
+
+    @requires(["ppt"])
+    def _update_ppgf2(self, k):
+        """
+        From step k requires: ppt
+        """
+        #self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #funktioniert noch nicht
+        #self.ppar[k] = self.delay3_ppgr(k,self.pptd)  anderer delay
+        self.ppgf2[k] = self.ppt[k]
+
+    @requires(["ppgf"])
+    def _update_pptmi(self, k):
+        """
+        From step k requires: ppgf
+        """
+        self.pptmi[k] =  self.pptmi_f(self.ppgf[k])
+
+    @requires(["ppgf","ppgi", "io"])
+    def _update_pii(self, k):
+        """
+        From step k requires: ppgf, ppgi, io
+        """
+        
+        self.pii[k] = self.ppgi[k] * self.ppgf[k] / self.io[k]
 
 
+    @requires(["fio70"])
+    def _update_fio70(self, k):
+        """
+        From step k requires: nothing
+        """
+        self.fio70[k] = self.io[k]/self.io70
 
+    @requires(["fio70"])
+    def _update_ymap1(self, k):
+        """
+        From step k requires: fio70
+        """
+        self.ymap1[k] = self.ymap1_f(self.fio70[k])
 
+    @requires(["fio70"])
+    def _update_ymap2(self, k):
+        """
+        From step k requires: fio70
+        """
+        self.ymap2[k] = self.ymap2_f(self.fio70[k])
 
+    @requires(["ymap1","ymap2"])
+    def _update_apfay(self, k):
+        """
+        From step k requires: ymap1, ymap2
+        """
+        if self.time[k] > self.apct:
+            self.apfay[k] = self.ymap2[k]
+     
+        else:
+            self.apfay[k] = self.ymap1[k]
 
     @requires(["ppgr"])
     def _update_abl(self,k):
@@ -499,11 +742,10 @@ class Pollution:
         """
         self.abl[k] = self.ppgr[k] * self.ghup
         
-     #neu hinzugefügt
     @requires (["abl"])
-    def _update_ef(self,k):
+    def _update_hef(self,k):
         """
         From step k requires: abl
         """
-        self.ef[k] = (self.arl + self.ul + self.abl[k])/1.91
+        self.hef[k] = (self.arl + self.url + self.abl[k])/1.91
 

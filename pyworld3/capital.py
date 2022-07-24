@@ -494,7 +494,10 @@ class Capital:
         """
         From step k=0 requires: LUF, else nothing
         """
-        self.lufd[k] = self.smooth_luf(k, self.lufdt)
+        if k == 0:
+            self.lufd[0] = 1
+        else:
+            self.lufd[k] = self.smooth_luf(k, self.lufdt)
 
     @requires(["cuf"], ["lufd"])
     def _update_cuf(self, k):
@@ -511,7 +514,7 @@ class Capital:
         if k == 0:
             self.ic[k] = self.ici
         else:
-            self.ic[k] = self.ic[j] + self.dt * (self.icir[jk] - self.icdr[jk])
+            self.ic[k] = self.ic[k-1] + self.dt * (self.icir[k-1] - self.icdr[k-1])
 
     @requires(["alic"])
     def _update_alic(self, k):
@@ -539,9 +542,13 @@ class Capital:
         """
         From step k requires: IC FCAOR CUF ICOR
         """
-        self.io[k] = (self.ic[k] * (1 - self.fcaor[k]) * self.cuf[k] /
-                      self.icor[k])
-
+        
+        
+        if k == 0:
+            self.io[0] = 6.65e+10
+        else:
+            self.io[k] = (self.ic[k] * (1 - self.fcaor[k]) * self.cuf[k] / self.icor[k])
+        
     @requires(["iopc"], ["io", "pop"])
     def _update_iopc(self, k):
         """
@@ -632,12 +639,15 @@ class Capital:
         """
         self.scir[kl] = self.io[k] * self.fioas[k]
 
-    @requires(["fioai"], ["fioaa", "fioas", "fioac"])
+    @requires(["fioaa", "fioas", "fioac"])
     def _update_fioai(self, k):
         """
         From step k requires: FIOAA FIOAS FIOAC
         """
-        self.fioai[k] = (1 - self.fioaa[k] - self.fioas[k] - self.fioac[k])
+        if k == 0:
+            self.fioai[0] = 0.352468116846468
+        else:
+            self.fioai[k] = (1 - self.fioaa[k] - self.fioas[k] - self.fioac[k])
 
     @requires(["icir"], ["io", "fioai"])
     def _update_icir(self, k, kl):
