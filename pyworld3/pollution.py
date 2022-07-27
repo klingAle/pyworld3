@@ -181,6 +181,8 @@ class Pollution:
         self.ul = ul
         self.ghup = ghup
         
+        print('Using old version of pollution sector')
+        
  
     def init_pollution_variables(self):
         """

@@ -228,9 +228,7 @@ class Pollution:
         self.ymap1 = np.full((self.n,), np.nan)
         self.ymap2 = np.full((self.n,), np.nan)
         self.fio70 = np.full((self.n,), np.nan)
-        self.io = np.full((self.n,), np.nan)
         self.pii = np.full((self.n,), np.nan)
-        self.pop = np.full((self.n,), np.nan)
         self.pcrum = np.full((self.n,), np.nan)
         self.ppgi = np.full((self.n,), np.nan)
         self.aiph = np.full((self.n,), np.nan)
@@ -291,7 +289,7 @@ class Pollution:
         with open(json_file) as fjson:
             tables = json.load(fjson)
 
-        func_names = ["AHLM", "YMAP1", "YMAP2", "PPTCM", "PPTMI", "PCRUM"]
+        func_names = ["PCRUM","AHLM","PPTCM","PPTMI","YMAP1","YMAP2"]
         for func_name in func_names:
             for table in tables:
                 if table["y.name"] == func_name:
@@ -479,7 +477,6 @@ class Pollution:
         self._update_ppgr(0)
         self._update_ppar(0)
         self._update_pp(0)
-
         self._update_ahlm(0)
         self._update_ahl(0)
         self._update_ppasr(0)
@@ -519,7 +516,6 @@ class Pollution:
         self._update_ppgr(k)
         self._update_ppar(k)
         self._update_pp(k)
-
         self._update_ahlm(k)
         self._update_ahl(k)
         self._update_ppasr(k)

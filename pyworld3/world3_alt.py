@@ -41,7 +41,7 @@ from .pollution import Pollution
 from .resource import Resource
 
 
-class World3(Population, Capital, Agriculture, Pollution, Resource):
+class World3_alt(Population, Capital, Agriculture, Pollution, Resource):
     """
     The World3 model as it is described in the technical book [1]_. World3 is
     structured in 5 main sectors and contains 12 state variables. The figures
@@ -114,14 +114,14 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               scor2=1, alic1=14, alic2=14, alsc1=20, alsc2=20,
                               fioac1=0.43, fioac2=0.43,
                               ali=0.9e9, pali=2.3e9, lfh=0.7, palt=3.2e9,
-                              pl=0.1, alai1=2, alai2=2, lyf1=1,
+                              pl=0.1, alai1=2, alai2=2, io70=7.9e11, lyf1=1,
                               lyf2=1, sd=0.07, uili=8.2e6, alln=6000, uildt=10,
-                              lferti=600, ilf=600, fspd=2, sfpc=230,ppoli=2.5e7,
-                              ppol70=1.36e8, ahl70=1.5, amti=1, imti=10,
-                              imef=0.1, fipm=0.001, frpm=0.02, ppgf1=1,
-                              ppgf2=1, ppgf21=1,pptd1=20, pptd2=20,
-                              arl = 0.9, ul = 8.2e-4, ghup= 4e-9):
-   #neue konstanten hinzugefügt. Ich muss noch die alten entfernen     
+                              lferti=600, ilf=600, fspd=2, sfpc=230,
+                              ppoli=2.5e7, ppol70=1.36e8, ahl70=1.5, amti=1,
+                              imti=10, imef=0.1, fipm=0.001, frpm=0.02,
+                              ppgf1=1, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
+                              nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20):
+   
         
                                      
         
@@ -140,9 +140,10 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.init_agriculture_constants(ali, pali, lfh, palt, pl, alai1, alai2,
                                         io70, lyf1, lyf2, sd, uili, alln,
                                         uildt, lferti, ilf, fspd, sfpc)
-        self.init_pollution_constants(pp19 , apct , io70 ,imef ,imti ,frpm
-                                      ,arl ,url ,ghup ,faipm ,amti ,pptd
-                                      ,ahl70 ,pp70 , dppolx, tdt, ppgf1)
+        self.init_pollution_constants(ppoli, ppol70, ahl70,
+                                     amti, imti, imef, fipm,
+                                     frpm, ppgf1, ppgf2, ppgf21,
+                                     pptd1, pptd2)
         self.init_resource_constants(nri, nruf1, druf, tdt)
 
     def init_world3_variables(self):
@@ -435,7 +436,7 @@ def hello_world3():
     params = {'lines.linewidth': '3'}
     rcParams.update(params)
 
-    world3 = World3()
+    world3 = World3_alt()
     world3.init_world3_constants()
     world3.init_world3_variables()
     world3.set_world3_table_functions()

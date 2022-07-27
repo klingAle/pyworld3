@@ -225,33 +225,35 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
         """
 
-        self.loop0_population()
-        self.loop0_capital()
-        self.loop0_agriculture()
-        self.loop0_pollution()
-        self.loop0_resource()
+        self.redo_loop = True
+        for i in range(0,5):  # ich habe versucht die loop0 oft auszuführen damit alle ersten werte gesetzt sind, aber klappt immer noch nicht. Wenn das klappen würde muss ich noch noch die variablenberechung zu k-1 ändern
+            print("loop0")
+            while self.redo_loop == True:
+                self.loop0_pollution()
+                self.loop0_population()
+                self.loop0_capital()
+                self.loop0_agriculture()
+                self.loop0_resource()
+                self.redo_loop = False
+            
+            
+            
+            #es werden Variablen aus anderen Sektoren benötigt, bevor diese berechnet werden
 
-
-        for k_ in range(1, self.n):
-            if self.verbose:
-                print("go loop", k_)
-            self.loopk_population(k_-1, k_, k_-1, k_)
-            self.loopk_capital(k_-1, k_, k_-1, k_)
-            self.loopk_agriculture(k_-1, k_, k_-1, k_)
-            self.loopk_pollution(k_-1, k_, k_-1, k_)
-            self.loopk_resource(k_-1, k_, k_-1, k_)
-                
+        for k_ in range(0, self.n):
+            self.redo_loop = True
+            while self.redo_loop:
+                if self.verbose:
+                    print("go loop", k_)
+                self.loopk_population(k_-1, k_, k_-1, k_)
+                self.loopk_capital(k_-1, k_, k_-1, k_)
+                self.loopk_agriculture(k_-1, k_, k_-1, k_)
+                self.loopk_pollution(k_-1, k_, k_-1, k_)
+                self.loopk_resource(k_-1, k_, k_-1, k_)
+                self.redo_loop = False
                 
         """   
-                
-        self.redo_loop = True
-        while self.redo_loop == True:
-            self.loop0_population()
-            self.loop0_capital()
-            self.loop0_agriculture()
-            self.loop0_pollution()
-            self.loop0_resource()
-            self.redo_loop = False
+       
 
         for k_ in range(1, self.n):
             print("loopk")

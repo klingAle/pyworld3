@@ -484,13 +484,16 @@ class Population:
             is False.
 
         """
-        # Set initial conditions
+        # Set initial conditions    
+        
         self.p1[0] = self.p1i
         self.p2[0] = self.p2i
         self.p3[0] = self.p3i
         self.p4[0] = self.p4i
         self.frsn[0] = 0.82
         self.pop[0] = self.p1[0] + self.p2[0] + self.p3[0] + self.p4[0]
+        # in die jeweiligen funktionen geschoben
+        
         if alone:
             self.loop0_exogenous()
         # Death rate subsector
@@ -650,7 +653,10 @@ class Population:
         """
         State variable, requires previous step only
         """
-        self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1]
+        if k == 0:
+            self.p1[0] = self.p1i
+        else:
+            self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1]
                                            - self.mat1[k-1])
 
     @requires(["p2"])
@@ -658,7 +664,10 @@ class Population:
         """
         State variable, requires previous step only
         """
-        self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk]
+        if k == 0:
+            self.p2[0] = self.p2i
+        else:
+            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk]
                                            - self.mat2[jk])
 
     @requires(["p3"])
@@ -666,7 +675,10 @@ class Population:
         """
         State variable, requires previous step only
         """
-        self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk]
+        if k == 0:
+            self.p3[0] = self.p3i
+        else:
+            self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk]
                                            - self.mat3[jk])
 
     @requires(["p4"])
@@ -674,14 +686,20 @@ class Population:
         """
         State variable, requires previous step only
         """
-        self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
+        if k == 0:
+            self.p4[0] = self.p4i
+        else:
+            self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
 
     @requires(["pop"], ["p1", "p2", "p3", "p4"])
     def _update_pop(self, k):
         """
         From step k=0 requires: P1 P2 P3 P4
         """
-        self.pop[k] = self.p1[k] + self.p2[k] + self.p3[k] + self.p4[k]
+        if k == 0:
+            self.pop[0] = self.p1[0] + self.p2[0] + self.p3[0] + self.p4[0]
+        else:
+            self.pop[k] = self.p1[k] + self.p2[k] + self.p3[k] + self.p4[k]
 
     @requires(["fpu"], ["pop"])
     def _update_fpu(self, k):
@@ -874,7 +892,10 @@ class Population:
         """
         From step k requires: FIE
         """
-        self.frsn[k] = self.frsn_f(self.fie[k])
+        if k == 0:
+            self.frsn[0] = 0.82
+        else:
+            self.frsn[k] = self.frsn_f(self.fie[k])
 
     @requires(["dcfs"], ["frsn", "sfsn"])
     def _update_dcfs(self, k):

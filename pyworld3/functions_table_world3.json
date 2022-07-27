@@ -1248,28 +1248,6 @@
  },
  {
   "sector": "Pollution",
-  "x.name": "PPI",
-  "x.values": [
-   -246,
-   1.0,
-   251.0,
-   501.0,
-   751.0,
-   1001.0
-  ],
-  "y.name": "AHLM",
-  "y.values": [
-   1.0,
-   1.0,
-   11.0,
-   21.0,
-   31.0,
-   41.0
-  ]
- }
- ,
- {
-  "sector": "Pollution",
   "x.name": "FIO70",
   "x.values": [
     0,
