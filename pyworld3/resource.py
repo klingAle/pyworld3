@@ -142,11 +142,11 @@ class Resource:
         self.nruf1 = nruf1
 
         
-        #neu hinzugefügt:
+        #2004 version added:
         self.druf = druf
         self.tdt = tdt
         
-        print("using updated resources sector")
+        print("using updated resources sector, 28.07.2022")
 
     def init_resource_variables(self):
         """
@@ -164,13 +164,12 @@ class Resource:
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
         
-        #neu hinzugefügt:
+        #2004 version added:
         self.rtc = np.full((self.n,), np.nan)
         self.rtcm = np.full((self.n,), np.nan)
         self.rt = np.full((self.n,), np.nan)
         self.rtm = np.full((self.n,), np.nan)
         self.nruf2 = np.full((self.n,), np.nan)
-        #wenn den tdt umzustellen nichts bringt, kann hier eine if funktion eingefügt werden
 
     def set_resource_delay_functions(self, method="euler"):
         """
@@ -186,7 +185,7 @@ class Resource:
             "euler".
         """
         
-        #neu hinzugefügt:
+        #2004 version added:
         var_delay3 = ["rt","nruf2","tdt"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
@@ -298,14 +297,15 @@ class Resource:
             is False.
 
         """
-        self.nr[0] = self.nri
+        self.nr[0] = self.nri # set initial values
+        self.rt[0] = 1
         self._update_nrfr(0)
         self._update_fcaor(0)
         if alone:
             self.loop0_exogenous()
         self._update_pcrum(0)
         self._update_nrur(0, 0)
-        #neu hinzugefügt:
+        #2004 version added:
         self._update_rtc(0)
         self._update_rtcm(0)
         self._update_rt(0)
@@ -331,7 +331,7 @@ class Resource:
         self._update_pcrum(k)
         self._update_nrur(k, kl)
         
-        #neu hinzugefügt:
+        #2004 version added:
         self._update_rtc(k)
         self._update_rtcm(k)
         self._update_rt(k)
@@ -409,7 +409,6 @@ class Resource:
         From step k requires: rtc
         """
         
-        #tablefunction/json file
         self.rtcm[k] = self.rtcm_f(self.rtc[k])     
     
     @requires (["rtcm"])
@@ -422,7 +421,7 @@ class Resource:
             self.rt[k] = self.rt[k-1]+ (self.rt[k-1] * self.rtcm[k]) 
         if self.time[k] < self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]
-            #setzten des Anfangswertes
+            #init
             if k == 0:
                 self.rt[0] = 1
     
@@ -433,10 +432,6 @@ class Resource:
         """
     
         self.nruf2[k] = self.delay3_rt(k, self.tdt)
-        
-        #sehr hässliche lösung
-        #if k < 100:
-            #self.nruf2[k] = 1
             
     @requires (["nruf2"])
     def _update_nruf(self,k):

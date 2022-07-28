@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 
 from pyworld3 import World3
 from pyworld3.utils import plot_world_variables
-from datetime import datetime
 
 params = {'lines.linewidth': '3'}
 plt.rcParams.update(params)
 
-world3 = World3(pyear = 1975, pyear_res_tech= 4000, dt = 0.5)
+world3 = World3(pyear = 1975, pyear_res_tech = 4000, dt = 0.5, pyear_pp_tech = 4000)
 world3.init_world3_constants()
 world3.init_world3_variables()
 world3.set_world3_table_functions()
@@ -77,7 +76,5 @@ plot_world_variables(world3.time,
                      ["HEF", "HWI"],
                      [[0.1, 2.4], [0,0.9]],
                      img_background="./img/fig 4-11-3.png",
-                     figsize=(7, 5), title="Ecological Footprint + Human Welfare Index, 2004")
-
-
+                     figsize=(7, 5), title="Human Wellfare and Footprint, 2004")
 

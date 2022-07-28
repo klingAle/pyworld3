@@ -38,7 +38,6 @@ from .population import Population
 from .capital import Capital
 from .agriculture import Agriculture
 from .pollution_update import Pollution
-#from .pollution import Pollution
 from .resource import Resource
 
 
@@ -75,6 +74,10 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         time step of the simulation [year]. The default is 1.
     pyear : float, optional
         implementation date of new policies [year]. The default is 1975.
+    pyear_res_tech : float, optional
+        implementation of resource policy 
+    pyear_pp_tech : float, optional
+        implementation of pollution policy
     iphst : float, optional
         implementation date of new policy on health service time [year].
         The default is 1940.
@@ -125,10 +128,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1
                               ,imti = 10 ,frpm = 0.02 ,arl = 0.9 ,url = 8.2e-4
                               ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
-                              ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 , ppgf1 = 1 ):
-   #neue konstanten hinzugefügt. Ich muss noch die alten entfernen     
-        
-                                     
+                              ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 , ppgf1 = 1 ):    
         
         """
         Initialize the constant parameters of the 5 sectors. Constants and
@@ -222,9 +222,6 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         """
         Run an unsorted sequence of updates of the 5 sectors, and reschedules
         each loop computation until all variables are computed.
-        
-        Ich habe die "loop_redo entfernt"
-
         """
 
         self.redo_loop = True
@@ -248,24 +245,6 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                 self.loopk_agriculture(k_-1, k_, k_-1, k_)
                 self.loopk_pollution(k_-1, k_, k_-1, k_)
                 self.loopk_resource(k_-1, k_, k_-1, k_)
-                
-        """   
-       
-
-        for k_ in range(1, self.n):
-            print("loopk")
-            self.redo_loop = True
-            while self.redo_loop:
-                self.redo_loop = False
-                if self.verbose:
-                    print("go loop", k_)
-                self.loopk_population(k_-1, k_, k_-1, k_)
-                self.loopk_capital(k_-1, k_, k_-1, k_)
-                self.loopk_agriculture(k_-1, k_, k_-1, k_)
-                self.loopk_pollution(k_-1, k_, k_-1, k_)
-                self.loopk_resource(k_-1, k_, k_-1, k_)
-                
-        """
 
     def _run_world3_fast(self):
         """
@@ -292,7 +271,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         Run a sorted sequence to update one loop of World3 with
         no checking and no rescheduling [unsafe].
         
-        mit neuen funktionen ergänzen
+        i have to add the new functions
         
 
         """

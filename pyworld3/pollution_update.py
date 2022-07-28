@@ -55,6 +55,8 @@ class Pollution:
     """
     Persistent Pollution sector. Can be run independantly from other sectors
     with exogenous inputs. The initial code is defined p.478.
+    
+    Completely rebuild for the 2004 update.
 
     Examples
     --------
@@ -179,7 +181,7 @@ class Pollution:
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_pp_tech = 4000,
                  verbose=False):
-        print("using updated version of pollution sector, Version 27.07.2022")
+        
         self.pyear = pyear
         self.pyear_pp_tech = pyear_pp_tech
         self.dt = dt
@@ -189,11 +191,10 @@ class Pollution:
         self.length = self.year_max - self.year_min
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
-        print('Using local edit of pyworld3')
 
-    def init_pollution_constants(self,pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1 ,imti = 10 ,frpm = 0.02
-                                 ,arl = 0.9 ,url = 8.2e-4 ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
-                                 ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20, ppgf1 = 1):
+    def init_pollution_constants(self,pp19 = 2.5e7, apct = 4000.0, io70 = 7.9e11 ,imef = 0.1 ,imti = 10.0 ,frpm = 0.02
+                                 ,arl = 0.9 ,url = 8.2e-4 ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1.0 ,pptd = 20.0
+                                 ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20.0, ppgf1 = 1.0):
         """
         Initialize the constant parameters of the pollution sector. Constants
         and their unit are documented above at the class level.
@@ -246,8 +247,8 @@ class Pollution:
         self.pptcm = np.full((self.n,), np.nan)
         self.pptcr = np.full((self.n,), np.nan)
         self.ppt = np.full((self.n,), np.nan)
-        self.ppgf2 = np.full((self.n,), 1.0) # da der neue Pollution sektor ein loop ist, muss für den durchlauf werte vorgegeben werden
-        self.ppgf = np.full((self.n,), 1.0)
+        self.ppgf2 = np.full((self.n,), np.nan)
+        self.ppgf = np.full((self.n,), np.nan)
         self.pptmi = np.full((self.n,), np.nan)
         self.abl = np.full((self.n,), np.nan)
         self.hef = np.full((self.n,), np.nan)
@@ -467,7 +468,8 @@ class Pollution:
             is False.
 
         """
-        self.pp[0] = self.pp19 # startwert setzen
+        self.pp[0] = self.pp19 #set init value
+        self.ppt[0] = 1 
         self._update_pcrum(0)
         self._update_ppolx(0)
         if alone:
@@ -602,13 +604,10 @@ class Pollution:
         """
         From step k requires: ppar, ppasr
         """
-        if k == 0:
+        if k == 0: #set init value again, init in loop0 does not work
             self.pp[0] = 2.5e7
         if k > 0:
             self.pp[k] = self.pp[k-1] + (self.ppar[k-1] - self.ppasr[k-1])
-            """
-            hässliche lösung, noch ändern. Der Autor hat die erste initierung in der 0 loop aber bei mir klappt das nicht
-            """
 
     @requires(["pp"])
     def _update_ppolx(self, k):
@@ -670,8 +669,8 @@ class Pollution:
         """
         From step k requires: pptcr
         """
-        if k == 0:
-            self.ppt[k] = 1
+        if k == 0: #set init value again, init in loop0 does not work
+            self.ppt[k] = 1 
         if k > 0:
             self.ppt[k] = self.ppt[k-1] + self.pptcr[k]
 
@@ -680,10 +679,8 @@ class Pollution:
         """
         From step k requires: ppt
         """
-        #self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #funktioniert noch nicht
-        #self.ppar[k] = self.delay3_ppgr(k,self.pptd)  anderer delay
-        self.ppgf2[k] = self.ppt[k]
-
+        self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #again starts at 0.15, dont know why, isnt a problem if pyear is after 1950
+        
     @requires(["ppgf"])
     def _update_pptmi(self, k):
         """
