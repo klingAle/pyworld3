@@ -131,7 +131,7 @@ class Resource:
         self.time = np.arange(self.year_min, self.year_max, self.dt)
 
 
-    def init_resource_constants(self, nri=1e12, nruf1=1, druf = 4.8e9, tdt = 20):
+    def init_resource_constants(self, nri=1e12, nruf1=1, druf = 4.8e9, tdt = 20, nri19 = 1e12):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
@@ -139,6 +139,7 @@ class Resource:
         """
         
         self.nri = nri
+        self.nri19 = nri19
         self.nruf1 = nruf1
 
         
@@ -368,7 +369,7 @@ class Resource:
         """
         From step k requires: NR
         """
-        self.nrfr[k] = self.nr[k] / self.nri
+        self.nrfr[k] = self.nr[k] / self.nri19
 
     @requires(["fcaor1", "fcaor2", "fcaor"], ["nrfr"])
     def _update_fcaor(self, k):
