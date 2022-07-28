@@ -39,7 +39,6 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from .specials import clip
-from .specials import Delay3
 from .utils import requires
 
 
@@ -72,8 +71,6 @@ class Resource:
         time step of the simulation [year]. The default is 1.
     pyear : float, optional
         implementation date of new policies [year]. The default is 1975.
-    pyear_res_tech : float, optional
-        implementaion date of resource tech [year]. The default is 4000.
     verbose : bool, optional
         print information for debugging. The default is False.
 
@@ -101,27 +98,12 @@ class Resource:
         fcaor value before time=pyear [].
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
-<<<<<<< Updated upstream
-    
-    New Varibles(2004):
-    druf : float
-        Desired Resource Utilization Factor[resource units]. The default is 4.8e9.
-    tdt : float, optional
-        Technology development time [years]. Default is 20 years.
-    rt : numpy array
-        Res Tech; Stock []
-    rtc : numpy array
-        Resource Technology Change
-    rtcm : numpy.ndarray
-        Resource Technology Change Multiplier
-    rtcr : numpy.ndarray
-        Res Tech Change Rate
+
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_res_tech = 4000,
+    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
                  verbose=False):
         self.pyear = pyear
-        self.pyear_res_tech  = pyear_res_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -130,23 +112,15 @@ class Resource:
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
 
-
-    def init_resource_constants(self, nri=1e12, nruf1=1, druf = 4.8e9, tdt = 20):
+    def init_resource_constants(self, nri=1e12, nruf1=1, nruf2=1):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
 
         """
-        
         self.nri = nri
         self.nruf1 = nruf1
-
-        
-        #2004 version added:
-        self.druf = druf
-        self.tdt = tdt
-        
-        print("using updated resources sector, 28.07.2022")
+        self.nruf2 = nruf2
 
     def init_resource_variables(self):
         """
@@ -163,13 +137,6 @@ class Resource:
         self.fcaor = np.full((self.n,), np.nan)
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
-        
-        #2004 version added:
-        self.rtc = np.full((self.n,), np.nan)
-        self.rtcm = np.full((self.n,), np.nan)
-        self.rt = np.full((self.n,), np.nan)
-        self.rtm = np.full((self.n,), np.nan)
-        self.nruf2 = np.full((self.n,), np.nan)
 
     def set_resource_delay_functions(self, method="euler"):
         """
@@ -183,18 +150,9 @@ class Resource:
         method : str, optional
             Numerical integration method: "euler" or "odeint". The default is
             "euler".
-        """
-        
-        #2004 version added:
-        var_delay3 = ["rt","nruf2","tdt"]
-        for var_ in var_delay3:
-            func_delay = Delay3(getattr(self, var_.lower()),
-                                self.dt, self.time, method=method)
-            setattr(self, "delay3_"+var_.lower(), func_delay)
 
         """
-        Delay Funktion aus Pollution-class kopiert und Variablen angepasst.
-        """
+        pass
 
     def set_resource_table_functions(self, json_file=None):
         """
@@ -214,7 +172,7 @@ class Resource:
         with open(json_file) as fjson:
             tables = json.load(fjson)
 
-        func_names = ["PCRUM", "FCAOR1", "FCAOR2", "RTCM"]
+        func_names = ["PCRUM", "FCAOR1", "FCAOR2"]
 
         for func_name in func_names:
             for table in tables:
@@ -243,7 +201,6 @@ class Resource:
         self.fioac = 0.43
         self.alic = 14
         self.icor = 3
-        
         # variables
         self.pop = np.full((self.n,), np.nan)
         self.pop1 = np.full((self.n,), np.nan)
@@ -297,20 +254,14 @@ class Resource:
             is False.
 
         """
-        self.nr[0] = self.nri # set initial values
-        self.rt[0] = 1
+        self.nr[0] = self.nri
         self._update_nrfr(0)
         self._update_fcaor(0)
         if alone:
             self.loop0_exogenous()
+        self._update_nruf(0)
         self._update_pcrum(0)
         self._update_nrur(0, 0)
-        #2004 version added:
-        self._update_rtc(0)
-        self._update_rtcm(0)
-        self._update_rt(0)
-        self._update_nruf2(0)
-        self._update_nruf(0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
         """
@@ -328,15 +279,9 @@ class Resource:
         self._update_fcaor(k)
         if alone:
             self.loopk_exogenous(k)
+        self._update_nruf(k)
         self._update_pcrum(k)
         self._update_nrur(k, kl)
-        
-        #2004 version added:
-        self._update_rtc(k)
-        self._update_rtcm(k)
-        self._update_rt(k)
-        self._update_nruf2(k)
-        self._update_nruf(k)
 
     def run_resource(self):
         """
@@ -361,7 +306,7 @@ class Resource:
         """
         State variable, requires previous step only
         """
-        self.nr[k] = self.nr[k-1] - self.dt * self.nrur[k-1]
+        self.nr[k] = self.nr[j] - self.dt * self.nrur[jk]
 
     @requires(["nrfr"], ["nr"])
     def _update_nrfr(self, k):
@@ -379,7 +324,14 @@ class Resource:
         self.fcaor2[k] = self.fcaor2_f(self.nrfr[k])
         self.fcaor[k] = clip(self.fcaor2[k], self.fcaor1[k], self.time[k],
                              self.pyear)
-        
+
+    @requires(["nruf"])
+    def _update_nruf(self, k):
+        """
+        From step k requires: nothing
+        """
+        self.nruf[k] = clip(self.nruf2, self.nruf1, self.time[k], self.pyear)
+
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
         """
@@ -387,57 +339,9 @@ class Resource:
         """
         self.pcrum[k] = self.pcrum_f(self.iopc[k])
 
-    @requires(["nrur"], ["pop", "pcrum", "nruf"], ["rt"])
+    @requires(["nrur"], ["pop", "pcrum", "nruf"])
     def _update_nrur(self, k, kl):
         """
         From step k requires: POP PCRUM NRUF
         """
-        self.nrur[k] = self.pop[k] * self.pcrum[k] * self.nruf[k]
-
-    @requires (["nrur"])    
-    def _update_rtc(self,k):
-        
-        """
-        From step k requires: nrur
-        """
-
-        self.rtc[k] = 1-(self.nrur[k]/self.druf)
-
-    @requires (["rtc"])
-    def _update_rtcm(self, k):
-        """
-        From step k requires: rtc
-        """
-        
-        self.rtcm[k] = self.rtcm_f(self.rtc[k])     
-    
-    @requires (["rtcm"])
-    def _update_rt(self,k):
-        """
-        From step k requires: rtcm
-        """
-            
-        if self.time[k] >= self.pyear_res_tech:
-            self.rt[k] = self.rt[k-1]+ (self.rt[k-1] * self.rtcm[k]) 
-        if self.time[k] < self.pyear_res_tech:
-            self.rt[k] = self.rt[k-1]
-            #init
-            if k == 0:
-                self.rt[0] = 1
-    
-    @requires (["rt"])
-    def _update_nruf2(self,k):
-        """
-        From step k requires: rt
-        """
-    
-        self.nruf2[k] = self.delay3_rt(k, self.tdt)
-            
-    @requires (["nruf2"])
-    def _update_nruf(self,k):
-        """
-        From step k requires: nruf2
-        """
-    
-        self.nruf[k] = clip(self.nruf2[k], self.nruf1, self.time[k], self.pyear)
-        
+        self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
