@@ -145,6 +145,8 @@ class Resource:
         #neu hinzugefügt:
         self.druf = druf
         self.tdt = tdt
+        
+        print("using updated resources sector")
 
     def init_resource_variables(self):
         """
@@ -359,7 +361,7 @@ class Resource:
         """
         State variable, requires previous step only
         """
-        self.nr[k] = self.nr[j] - self.dt * self.nrur[jk]
+        self.nr[k] = self.nr[k-1] - self.dt * self.nrur[k-1]
 
     @requires(["nrfr"], ["nr"])
     def _update_nrfr(self, k):
@@ -390,7 +392,7 @@ class Resource:
         """
         From step k requires: POP PCRUM NRUF
         """
-        self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
+        self.nrur[k] = self.pop[k] * self.pcrum[k] * self.nruf[k]
 
     @requires (["nrur"])    
     def _update_rtc(self,k):

@@ -38,6 +38,7 @@ from .population import Population
 from .capital import Capital
 from .agriculture import Agriculture
 from .pollution_update import Pollution
+#from .pollution import Pollution
 from .resource import Resource
 
 
@@ -91,12 +92,13 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000,
+    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000, pyear_pp_tech = 4000,
                  iphst=1940, verbose=False):
-        print("using updated version of world3")
+        print("using updated version of world3, Version: 27.07.2022")
         self.iphst = iphst
         self.pyear = pyear
         self.pyear_res_tech = pyear_res_tech
+        self.pyear_pp_tech = pyear_pp_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -226,23 +228,19 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         """
 
         self.redo_loop = True
-        for i in range(0,5):  # ich habe versucht die loop0 oft auszuführen damit alle ersten werte gesetzt sind, aber klappt immer noch nicht. Wenn das klappen würde muss ich noch noch die variablenberechung zu k-1 ändern
-            print("loop0")
-            while self.redo_loop == True:
-                self.loop0_pollution()
-                self.loop0_population()
-                self.loop0_capital()
-                self.loop0_agriculture()
-                self.loop0_resource()
-                self.redo_loop = False
-            
-            
-            
-            #es werden Variablen aus anderen Sektoren benötigt, bevor diese berechnet werden
+        while self.redo_loop == True:
+            self.redo_loop = False
+            self.loop0_population()
+            self.loop0_capital()
+            self.loop0_agriculture()
+            self.loop0_pollution()
+            self.loop0_resource()
+                
 
-        for k_ in range(0, self.n):
+        for k_ in range(1, self.n):
             self.redo_loop = True
             while self.redo_loop:
+                self.redo_loop = False
                 if self.verbose:
                     print("go loop", k_)
                 self.loopk_population(k_-1, k_, k_-1, k_)
@@ -250,7 +248,6 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                 self.loopk_agriculture(k_-1, k_, k_-1, k_)
                 self.loopk_pollution(k_-1, k_, k_-1, k_)
                 self.loopk_resource(k_-1, k_, k_-1, k_)
-                self.redo_loop = False
                 
         """   
        

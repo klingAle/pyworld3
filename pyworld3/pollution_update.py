@@ -133,7 +133,7 @@ class Pollution:
     pcrum : numpy.ndarray
         Per capita resource use multiplier
     ppgi : numpy.ndarray
-        persistent pollution generation index
+        persistent pollution generation industry
     aiph : numpy.ndarray
         Agricultural inputs per hectare
     ppga : numpy.ndarray
@@ -177,10 +177,11 @@ class Pollution:
 
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975,
+    def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_pp_tech = 4000,
                  verbose=False):
-        print("using updated version of pollution sector")
+        print("using updated version of pollution sector, Version 27.07.2022")
         self.pyear = pyear
+        self.pyear_pp_tech = pyear_pp_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -215,7 +216,7 @@ class Pollution:
         self.dppolx = dppolx
         self.tdt= tdt
         self.ppgf1 = ppgf1
-        print("using updated version of pollution sector")
+        print("using updated version of pollution sector, Version 27.07.2022")
  
     def init_pollution_variables(self):
         """
@@ -246,7 +247,7 @@ class Pollution:
         self.pptcr = np.full((self.n,), np.nan)
         self.ppt = np.full((self.n,), np.nan)
         self.ppgf2 = np.full((self.n,), 1.0) # da der neue Pollution sektor ein loop ist, muss für den durchlauf werte vorgegeben werden
-        self.ppgf = np.full((self.n,), np.nan)
+        self.ppgf = np.full((self.n,), 1.0)
         self.pptmi = np.full((self.n,), np.nan)
         self.abl = np.full((self.n,), np.nan)
         self.hef = np.full((self.n,), np.nan)
@@ -557,7 +558,7 @@ class Pollution:
         """
         State variable, requires previous step only
         """
-        self.pcrum[k] = self.pcrum_f(self.iopc[k]) 
+        self.pcrum[k] = self.pcrum_f(self.iopc[k])
 
     @requires(["pcrum"])
     def _update_ppgi(self, k):
@@ -578,7 +579,7 @@ class Pollution:
         """
         From step k requires: nothing
         """
-        self.ppgf[k] = clip(self.ppgf2[k-1], self.ppgf1, self.time[k], self.pyear) #ppgf2 von den vorherigem zeitschritt
+        self.ppgf[k] = clip(self.ppgf2[k], self.ppgf1, self.time[k], self.pyear_pp_tech)
         
     @requires(["ppgf"],["ppga"],["ppgi"])
     def _update_ppgr(self, k):
@@ -586,7 +587,7 @@ class Pollution:
         From step k requires: ppgf, ppga, ppgi
         """
         
-        self.ppgr[k] = self.ppgi[k] * self.ppga[k] * self.ppgf[k]
+        self.ppgr[k] = (self.ppgi[k] + self.ppga[k]) * self.ppgf[k]
 
     @requires(["ppgr"])
     def _update_ppar(self, k):
@@ -596,7 +597,7 @@ class Pollution:
         
         self.ppar[k] = self.delay3_ppgr(k,self.pptd) 
         
-    @requires(["ppar"])
+    @requires(["ppar", "ppasr"])
     def _update_pp(self, k):
         """
         From step k requires: ppar, ppasr
