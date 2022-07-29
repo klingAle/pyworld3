@@ -310,6 +310,7 @@ class Agriculture:
         self.aiph = np.full((self.n,), np.nan)
         self.alai = np.full((self.n,), np.nan)
         self.cai = np.full((self.n,), np.nan)
+        self.chai = np.full((self.n,), np.nan)
         self.ly = np.full((self.n,), np.nan)
         self.lyf = np.full((self.n,), np.nan)
         self.lymap = np.full((self.n,), np.nan)
@@ -493,6 +494,7 @@ class Agriculture:
         # loop 2
         self._update_cai(0)
         self._update_alai(0)
+        self._update_chai(0)
         # loop 6
         self._update_falm(0)
         self._update_fr(0)
@@ -556,6 +558,7 @@ class Agriculture:
         # loop 2
         self._update_cai(k)
         self._update_alai(k)
+        self._update_chai(k)
         self._update_ai(k)  # !!! checks cai for all k but useless if >=1
         # loop 6
         self._update_pfr(k)
@@ -689,13 +692,28 @@ class Agriculture:
         self.cai[k] = self.tai[k] * (1 - self.fiald[k])
 
     # OPTIMIZE checks more than necessary (cai[k] for k>=1)
-    @requires(["ai"], ["cai", "alai"])
+    
+    #new added funcion
+    @requires(["chai"],["cai", "ai","alai"])
+    def _update_chai(self, k):
+        """
+        From step k requires: CAI, AI, ALAI
+        """
+        self.chai[k] = (self.cai[k]-self.ai[k-1])/self.alai[k] # weis nicht ob das richtig ist
+    
+    @requires(["ai"],["cai", "alai"])
     def _update_ai(self, k):
         """
         From step k=0 requires: CAI, else nothing
         """
-        self.ai[k] = self.smooth_cai(k, self.alai[k])
+        #self.ai[k] = self.smooth_cai(k, self.alai[k]) #nicht gleich im inside maker
 
+        #so wird ai bei inside maker berechnet:        
+        if k == 0:
+            self.ai[0] = 5e9
+        else:
+            self.ai[k] = self.ai[k-1] + self.chai[k]
+        
     @requires(["alai"])
     def _update_alai(self, k):
         """
@@ -709,7 +727,10 @@ class Agriculture:
         """
         From step k requires: AI FALM AL
         """
-        self.aiph[k] = self.ai[k] * (1 - self.falm[k]) / self.al[k]
+        if k == 0: # läuft zwar durch aber mit komplett falschen werten
+            self.aiph[0] = 5.333333
+        else:
+            self.aiph[k] = self.ai[k-1] * (1 - self.falm[k]) / self.al[k]
 
     @requires(["lymc"], ["aiph"])
     def _update_lymc(self, k):

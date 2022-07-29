@@ -232,7 +232,6 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
             self.loop0_agriculture()
             self.loop0_pollution()
             self.loop0_resource()
-                
 
         for k_ in range(1, self.n):
             self.redo_loop = True

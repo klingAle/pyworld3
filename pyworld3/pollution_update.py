@@ -272,6 +272,12 @@ class Pollution:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "delay3_"+var_.lower(), func_delay)
+            
+        var_dlinf3 = ["PPGR"]
+        for var_ in var_dlinf3:
+            func_delay = Dlinf3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "dlinf3_"+var_.lower(), func_delay)
 
     def set_pollution_table_functions(self, json_file=None):
         """
@@ -331,7 +337,7 @@ class Pollution:
         self.lfdr1 = np.full((self.n,), np.nan)
         self.lfdr2 = np.full((self.n,), np.nan)
         self.ppgf22 = np.full((self.n,), np.nan)
-        #neu hinzugefügt
+        #2004 version added:
         self.io = np.full((self.n,), np.nan)
         self.io1 = np.full((self.n,), np.nan)
         self.io11 = np.full((self.n,), np.nan)
@@ -536,7 +542,7 @@ class Pollution:
         self._update_abl(k)
         self._update_hef(k)
 
-    def run_pollution(self):
+    def run_pollution(self): # werte mit inside maker vergleichen, ist alles richtig?
         """
         Run a sequence of updates to simulate the pollution sector alone with
         exogenous inputs.
@@ -567,6 +573,7 @@ class Pollution:
         """
         From step k requires: pcrum
         """
+        #hier ist irgentwo ein fehler. Kann nur population oder industrial output per capita sein
         self.ppgi[k] = self.pcrum[k]*self.pop[k]*self.frpm*self.imef*self.imti
     
     @requires(["aiph"])
@@ -574,6 +581,7 @@ class Pollution:
         """
         From step k requires: aiph
         """
+        #hier ist irgentwo ein fehler. Kann nur agriculture inputs per hectar sein
         self.ppga[k] = self.aiph[k]*(self.arl*1e9)*self.faipm*self.amti
 
     @requires(["ppgf2"])
@@ -597,7 +605,8 @@ class Pollution:
         From step k requires: ppgr
         """
         
-        self.ppar[k] = self.delay3_ppgr(k,self.pptd) 
+        self.ppar[k] = self.dlinf3_ppgr(k, self.pptd)
+        #es gibt 2 verschiedene delay3 funktionen
         
     @requires(["ppar", "ppasr"])
     def _update_pp(self, k):
