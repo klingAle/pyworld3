@@ -234,6 +234,8 @@ class Capital:
         self.fioacc = np.full((self.n,), np.nan)
         self.fioai = np.full((self.n,), np.nan)
         self.fioacv = np.full((self.n,), np.nan)
+        self.cio = np.full((self.n,), np.nan)
+        self.ciopc = np.full((self.n,), np.nan)
         # service subsector
         self.sc = np.full((self.n,), np.nan)
         self.so = np.full((self.n,), np.nan)
@@ -397,6 +399,8 @@ class Capital:
         self._update_io(0)
         self._update_iopc(0)
         self._update_fioac(0)
+        self._update_cio(0)
+        self._update_ciopc(0)
         # service subsector
         self._update_isopc(0)
         self._update_alsc(0)
@@ -447,6 +451,8 @@ class Capital:
         self._update_io(k)
         self._update_iopc(k)
         self._update_fioac(k)
+        self._update_cio(k)
+        self._update_ciopc(k)
         # service subsector
         self._update_state_sc(k, j, jk)
         self._update_isopc(k)
@@ -631,7 +637,23 @@ class Capital:
         self.fioas2[k] = self.fioas2_f(self.sopc[k] / self.isopc[k])
         self.fioas[k] = clip(self.fioas2[k], self.fioas1[k], self.time[k],
                              self.pyear)
-
+    
+    #added, 2004 update
+    @requires(["fioac"], ["io"])
+    def _update_cio(self, k):
+        """
+        From step k requires: fioas, io
+        """
+        self.cio[k] = self.fioac[k] * self.io[k]
+    
+    #added, 2004 update
+    @requires(["cio"], ["pop"])
+    def _update_ciopc(self, k):
+        """
+        From step k requires: cio, pop
+        """
+        self.ciopc[k] = self.cio[k] / self.pop[k]
+    
     @requires(["scir"], ["io", "fioas"])
     def _update_scir(self, k, kl):
         """

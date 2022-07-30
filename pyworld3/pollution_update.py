@@ -97,10 +97,10 @@ class Pollution:
         Industrial material toxic index. Default is 10
     frpm : float
         Fraction res pers mtl. Default is 0.02
-    arl : float [Gha]
-        Arable land. Default is 0.9.
-    url : float [Gha]
-        Urban Industrial land. Default is 8.2e-4.
+    al : float [ha]
+        Arable land. Default is 9e8.
+    uil : float [ha]
+        Urban Industrial land. Default is 8.2e6.
     ghup : float
         Gha per unit of pollution. Default is 4e-9
     faipm : float
@@ -542,7 +542,7 @@ class Pollution:
         self._update_abl(k)
         self._update_hef(k)
 
-    def run_pollution(self): # werte mit inside maker vergleichen, ist alles richtig?
+    def run_pollution(self):
         """
         Run a sequence of updates to simulate the pollution sector alone with
         exogenous inputs.
@@ -573,7 +573,7 @@ class Pollution:
         """
         From step k requires: pcrum
         """
-        #hier ist irgentwo ein fehler. Kann nur population oder industrial output per capita sein
+
         self.ppgi[k] = self.pcrum[k]*self.pop[k]*self.frpm*self.imef*self.imti
     
     @requires(["aiph"])
@@ -581,7 +581,7 @@ class Pollution:
         """
         From step k requires: aiph
         """
-        #hier ist irgentwo ein fehler. Kann nur agriculture inputs per hectar sein
+
         self.ppga[k] = self.aiph[k]*(self.arl*1e9)*self.faipm*self.amti
 
     @requires(["ppgf2"])
@@ -750,5 +750,5 @@ class Pollution:
         """
         From step k requires: abl
         """
-        self.hef[k] = (self.arl + self.url + self.abl[k])/1.91
+        self.hef[k] = (self.al[k]/1e9 + self.uil[k]/1e9 + self.abl[k])/1.91
 
