@@ -163,6 +163,31 @@ class Smooth:
         self.in_arr = in_arr  # use in_arr by reference
         self.method = method
 
+    def __call__(self, k, delay, init_val):
+        if k == 0:
+            self.out_arr[k] = init_val #init wert im call setzen
+        else:
+            if self.method == "odeint":
+                res = odeint(func_delay1, self.out_arr[k-1],
+                             [0, self.dt], args=(self.in_arr[k-1], delay))
+                self.out_arr[k] = res[1, :]
+            elif self.method == "euler":
+                dout = self.in_arr[k-1] - self.out_arr[k-1]
+                dout *= self.dt/delay
+                self.out_arr[k] = self.out_arr[k-1] + dout
+
+        return self.out_arr[k]
+
+
+DlInf1 = Smooth
+
+"""
+    def __init__(self, in_arr, dt, t, method="euler"):
+        self.dt = dt
+        self.out_arr = np.zeros((t.size,))
+        self.in_arr = in_arr  # use in_arr by reference
+        self.method = method
+
     def __call__(self, k, delay):
         if k == 0:
             self.out_arr[k] = self.in_arr[k]
@@ -180,7 +205,7 @@ class Smooth:
 
 
 DlInf1 = Smooth
-
+"""
 
 def func_delay3(out_, t_, in_, del_):
     """

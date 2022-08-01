@@ -193,7 +193,7 @@ class Pollution:
         self.time = np.arange(self.year_min, self.year_max, self.dt)
 
     def init_pollution_constants(self,pp19 = 2.5e7, apct = 4000.0, io70 = 7.9e11 ,imef = 0.1 ,imti = 10.0 ,frpm = 0.02
-                                 ,arl = 0.9 ,url = 8.2e-4 ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1.0 ,pptd = 20.0
+                                 ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1.0 ,pptd = 20.0
                                  ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20.0, ppgf1 = 1.0):
         """
         Initialize the constant parameters of the pollution sector. Constants
@@ -206,8 +206,6 @@ class Pollution:
         self.imef = imef
         self.imti = imti
         self.frpm = frpm
-        self.arl = arl
-        self.url = url
         self.ghup = ghup
         self.faipm = faipm
         self.amti = amti
@@ -582,7 +580,7 @@ class Pollution:
         From step k requires: aiph
         """
 
-        self.ppga[k] = self.aiph[k]*(self.arl*1e9)*self.faipm*self.amti
+        self.ppga[k] = self.aiph[k]*self.al[k]*self.faipm*self.amti
 
     @requires(["ppgf2"])
     def _update_ppgf(self, k):

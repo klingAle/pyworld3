@@ -126,7 +126,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               fipm=0.001, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
                               nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20,
                               pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1
-                              ,imti = 10 ,frpm = 0.02 ,arl = 0.9 ,url = 8.2e-4
+                              ,imti = 10 ,frpm = 0.02
                               ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
                               ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 , ppgf1 = 1 ):    
         
@@ -146,7 +146,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                                         io70, lyf1, lyf2, sd, uili, alln,
                                         uildt, lferti, ilf, fspd, sfpc)
         self.init_pollution_constants(pp19 , apct , io70 ,imef ,imti ,frpm
-                                      ,arl ,url ,ghup ,faipm ,amti ,pptd
+                                      ,ghup ,faipm ,amti ,pptd
                                       ,ahl70 ,pp70 , dppolx, tdt, ppgf1)
         self.init_resource_constants(nri, nruf1, druf, tdt)
 

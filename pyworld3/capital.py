@@ -503,7 +503,7 @@ class Capital:
         if k == 0:
             self.lufd[0] = 1
         else:
-            self.lufd[k] = self.smooth_luf(k, self.lufdt)
+            self.lufd[k] = self.smooth_luf(k, self.lufdt, 1) #init wert zwar richtig aber alle werte danach falsch -> smoothing funktion falsch
 
     @requires(["cuf"], ["lufd"])
     def _update_cuf(self, k):

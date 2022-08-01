@@ -899,5 +899,5 @@ class Agriculture:
         """
         From step k=0 requires: FR, else nothing
         """
-        self.pfr[k] = self.smooth_fr(k, self.fspd)
+        self.pfr[k] = self.smooth_fr(k, self.fspd,1) #init wert richtig, aber folgewerte falsch -> smoothing funktion falsch
 

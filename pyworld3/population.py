@@ -491,8 +491,7 @@ class Population:
         self.p3[0] = self.p3i
         self.p4[0] = self.p4i
         self.frsn[0] = 0.82
-        self.pop[0] = self.p1[0] + self.p2[0] + self.p3[0] + self.p4[0]
-        # in die jeweiligen funktionen geschoben
+        self.pop[0] = self.p1[0] + self.p2[0] + self.p3[0] + self.p4[0] 
         
         if alone:
             self.loop0_exogenous()
@@ -656,8 +655,7 @@ class Population:
         if k == 0:
             self.p1[0] = self.p1i
         else:
-            self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1]
-                                           - self.mat1[k-1])
+            self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1] - self.mat1[k-1])
 
     @requires(["p2"])
     def _update_state_p2(self, k, j, jk):
@@ -667,8 +665,7 @@ class Population:
         if k == 0:
             self.p2[0] = self.p2i
         else:
-            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk]
-                                           - self.mat2[jk])
+            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk] - self.mat2[jk])
 
     @requires(["p3"])
     def _update_state_p3(self, k, j, jk):
@@ -721,6 +718,7 @@ class Population:
         From step k requires: FPC
         """
         self.lmf[k] = self.lmf_f(self.fpc[k] / self.sfpc)  # Food >
+        #changed table function, 2004 update
 
     @requires(["cmi"], ["iopc"])
     def _update_cmi(self, k):
@@ -741,15 +739,16 @@ class Population:
         """
         From step k=0 requires: HSAPC, else nothing
         """
-        self.ehspc[k] = self.smooth_hsapc(k, self.hsid)
+        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, 0) #added init value to smoothing function
+        #funktion noch nicht richtig, obwohl alle input werte richtig sind
 
     @requires(["lmhs1", "lmhs2", "lmhs"], ["ehspc"])
     def _update_lmhs(self, k):
         """
         From step k requires: EHSPC
         """
-        self.lmhs1[k] = self.lmhs1_f(self.ehspc[k])
-        self.lmhs2[k] = self.lmhs2_f(self.ehspc[k])
+        self.lmhs1[k] = self.lmhs1_f(self.ehspc[k]) #changed json file, 2004 update
+        self.lmhs2[k] = self.lmhs2_f(self.ehspc[k]) #changed json file, 2004 update
         self.lmhs[k] = clip(self.lmhs2[k], self.lmhs1[k],
                             self.time[k], self.iphst)
 
@@ -793,7 +792,7 @@ class Population:
         """
         From step k requires: LMF LMHS LMP LMC
         """
-        self.le[k] = (self.len * self.lmf[k] * self.lmhs[k] * self.lmp[k] * self.lmc[k])
+        self.le[k] = self.len * self.lmf[k] * self.lmhs[k] * self.lmp[k] * self.lmc[k]
 
     @requires(["mat1"], ["p1", "m1"])
     def _update_mat1(self, k, kl):
@@ -863,7 +862,8 @@ class Population:
         """
         From step k=0 requires: IOPC, else nothing
         """
-        self.aiopc[k] = self.smooth_iopc(k, self.ieat)
+        #self.aiopc[k] = self.smooth_iopc(k, self.ieat, self.iopc[0]) #init wert falsch
+        self.aiopc[k] = self.smooth_iopc(k, self.ieat, 43.3) #init wert richtig aber verlauf ist falsch -> smooth funktion falsch
 
     @requires(["diopc"], ["iopc"], check_after_init=False)
     def _update_diopc(self, k):
