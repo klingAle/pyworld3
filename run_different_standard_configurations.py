@@ -21,7 +21,7 @@ szenario = 1
 
 if szenario == 1:
 
-    world3 = World3()
+    world3 = World3(dt = 1)
     world3.init_world3_constants()
     world3.init_world3_variables()
     world3.set_world3_table_functions()
@@ -40,7 +40,7 @@ if szenario == 1:
     plot_world_variables(world3.time,
                      [world3.le, world3.fpc, world3.sopc, world3.ciopc],
                      ["LE", "FPC", "SOPC", "CIOPC"],
-                     [[0, 85], [0,1020],[0,800], [0, 200]],
+                     [[0, 90], [0,1020],[0,970], [0, 250]],
                      img_background="./img/fig 4-1-2.png",
                      figsize=(7, 5),
                      title="World3 Referenze Run - Material standard of living, 2004 Szenario 1")
@@ -48,7 +48,7 @@ if szenario == 1:
     plot_world_variables(world3.time,
                      [world3.hef, world3.hwi],
                      ["HEF", "HWI"],
-                     [[0, 3.9], [0,0.9]],
+                     [[0, 4.35], [0,1]],
                      img_background="./img/fig 4-1-3.png",
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
 
@@ -77,7 +77,7 @@ if szenario == 2:
     plot_world_variables(world3.time,
                      [world3.le, world3.fpc, world3.sopc, world3.ciopc],
                      ["LE", "FPC", "SOPC", "CIOPC"],
-                     [[0, 85], [0,1020],[0,850], [0, 220]],
+                     [[0, 90], [0,1020],[0,970], [0, 250]],
                      img_background="./img/fig 4-2-2.jpg",
                      figsize=(7, 5),
                      title="World3 More Resources - Material standard of living, 2004 Szenario 2")
@@ -85,7 +85,7 @@ if szenario == 2:
     plot_world_variables(world3.time,
                      [world3.hef, world3.hwi],
                      ["HEF", "HWI"],
-                     [[0, 3.9], [0,0.9]],
+                     [[0, 4.35], [0,1]],
                      img_background="./img/fig 4-2-3.jpg",
                      figsize=(7, 5), title="World3 More Resources - Human Wellfare and Footprint, 2004 Szenario 2")
     

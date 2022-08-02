@@ -111,7 +111,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         self.verbose = False
 
     def init_world3_constants(self, p1i=65e7, p2i=70e7, p3i=19e7, p4i=6e7,
-                              dcfsn=4, fcest=4000, hsid=20, ieat=3, len=28,
+                              dcfsn=3.8, fcest=4000, hsid=20, ieat=3, len=28,
                               lpd=20, mtfn=12, pet=4000, rlt=30, sad=20,
                               zpgt=4000,
                               ici=2.1e11, sci=1.44e11, iet=4000, iopcd=400,

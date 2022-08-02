@@ -500,10 +500,8 @@ class Capital:
         """
         From step k=0 requires: LUF, else nothing
         """
-        if k == 0:
-            self.lufd[0] = 1
-        else:
-            self.lufd[k] = self.smooth_luf(k, self.lufdt, 1) #init wert zwar richtig aber alle werte danach falsch -> smoothing funktion falsch
+        
+        self.lufd[k] = self.smooth_luf(k, self.lufdt, 1) #update 2004, added init value
 
     @requires(["cuf"], ["lufd"])
     def _update_cuf(self, k):

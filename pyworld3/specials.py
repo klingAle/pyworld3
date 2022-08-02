@@ -157,6 +157,8 @@ class Smooth:
 
     """
 
+    #smooth funktion ist falsch!!!
+
     def __init__(self, in_arr, dt, t, method="euler"):
         self.dt = dt
         self.out_arr = np.zeros((t.size,))
@@ -165,15 +167,14 @@ class Smooth:
 
     def __call__(self, k, delay, init_val):
         if k == 0:
-            self.out_arr[k] = init_val #init wert im call setzen
+            self.out_arr[k] = init_val #init wert im call setzen, added init value to input
         else:
             if self.method == "odeint":
-                res = odeint(func_delay1, self.out_arr[k-1],
-                             [0, self.dt], args=(self.in_arr[k-1], delay))
+                res = odeint(func_delay1, self.out_arr[k-1], [0, self.dt], args=(self.in_arr[k-1], delay), )
                 self.out_arr[k] = res[1, :]
             elif self.method == "euler":
                 dout = self.in_arr[k-1] - self.out_arr[k-1]
-                dout *= self.dt/delay
+                dout *= self.dt/delay # dout = dout * self.dt/delay
                 self.out_arr[k] = self.out_arr[k-1] + dout
 
         return self.out_arr[k]

@@ -241,7 +241,7 @@ class Population:
         self.time = np.arange(self.year_min, self.year_max, self.dt)
 
     def init_population_constants(self, p1i=65e7, p2i=70e7, p3i=19e7, p4i=6e7,
-                                  dcfsn=4, fcest=4000, hsid=20, ieat=3, len=28,
+                                  dcfsn=3.8, fcest=4000, hsid=20, ieat=3, len=28,
                                   lpd=20, mtfn=12, pet=4000, rlt=30, sad=20,
                                   zpgt=4000):
         """
@@ -324,7 +324,7 @@ class Population:
         self.fcfpc = np.full((self.n,), np.nan)
         self.fsafc = np.full((self.n,), np.nan)
         
-        #neu hinzugefügt
+        #added 2004 update
         self.lei = np.full((self.n,), np.nan)
         self.gdpc = np.full((self.n,), np.nan)
         self.gdpi = np.full((self.n,), np.nan)
@@ -740,7 +740,6 @@ class Population:
         From step k=0 requires: HSAPC, else nothing
         """
         self.ehspc[k] = self.smooth_hsapc(k, self.hsid, 0) #added init value to smoothing function
-        #funktion noch nicht richtig, obwohl alle input werte richtig sind
 
     @requires(["lmhs1", "lmhs2", "lmhs"], ["ehspc"])
     def _update_lmhs(self, k):
@@ -862,8 +861,7 @@ class Population:
         """
         From step k=0 requires: IOPC, else nothing
         """
-        #self.aiopc[k] = self.smooth_iopc(k, self.ieat, self.iopc[0]) #init wert falsch
-        self.aiopc[k] = self.smooth_iopc(k, self.ieat, 43.3) #init wert richtig aber verlauf ist falsch -> smooth funktion falsch
+        self.aiopc[k] = self.smooth_iopc(k, self.ieat, 43.3) #update 2004, added init value
 
     @requires(["diopc"], ["iopc"], check_after_init=False)
     def _update_diopc(self, k):
@@ -884,25 +882,22 @@ class Population:
         """
         From step k requires: DIOPC
         """
-        self.sfsn[k] = self.sfsn_f(self.diopc[k])
+        self.sfsn[k] = self.sfsn_f(self.diopc[k]) #update 2004, changed json file 
 
     @requires(["frsn"], ["fie"])
     def _update_frsn(self, k):
         """
         From step k requires: FIE
         """
-        if k == 0:
-            self.frsn[0] = 0.82
-        else:
-            self.frsn[k] = self.frsn_f(self.fie[k])
+
+        self.frsn[k] = self.frsn_f(self.fie[k])
 
     @requires(["dcfs"], ["frsn", "sfsn"])
     def _update_dcfs(self, k):
         """
         From step k requires: FRSN SFSN
         """
-        self.dcfs[k] = clip(2.0, self.dcfsn*self.frsn[k]*self.sfsn[k],
-                            self.time[k], self.zpgt)
+        self.dcfs[k] = clip(2.0, self.dcfsn*self.frsn[k]*self.sfsn[k],self.time[k], self.zpgt)
 
     @requires(["ple"], ["le"], check_after_init=False)
     def _update_ple(self, k):
@@ -930,7 +925,7 @@ class Population:
         """
         From step k requires: LE
         """
-        self.fm[k] = self.fm_f(self.le[k])
+        self.fm[k] = self.fm_f(self.le[k]) #insight maker has a mistake here
 
     @requires(["mtf"], ["fm"])
     def _update_mtf(self, k):
@@ -972,16 +967,14 @@ class Population:
         """
         From step k requires: FCFPC
         """
-        self.fce[k] = clip(1.0, self.fce_toclip_f(self.fcfpc[k]),
-                           self.time[k], self.fcest)
+        self.fce[k] = clip(1.0, self.fce_toclip_f(self.fcfpc[k]), self.time[k], self.fcest)
 
     @requires(["tf"], ["mtf", "fce", "dtf"])
     def _update_tf(self, k):
         """
         From step k requires: MTF FCE DTF
         """
-        self.tf[k] = np.minimum(self.mtf[k], (self.mtf[k]*(1-self.fce[k]) +
-                                              self.dtf[k]*self.fce[k]))
+        self.tf[k] = np.minimum(self.mtf[k], (self.mtf[k]*(1-self.fce[k]) + self.dtf[k]*self.fce[k]))
 
     @requires(["cbr"], ["pop"])
     def _update_cbr(self, k, jk):

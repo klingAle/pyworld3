@@ -706,9 +706,8 @@ class Agriculture:
         """
         From step k=0 requires: CAI, else nothing
         """
-        #self.ai[k] = self.smooth_cai(k, self.alai[k]) #nicht gleich im inside maker
-
-        #so wird ai bei inside maker berechnet:        
+        
+        #update 2004, changed formula
         if k == 0:
             self.ai[0] = 5e9
         else:
@@ -727,7 +726,7 @@ class Agriculture:
         """
         From step k requires: AI FALM AL
         """
-        if k == 0: # läuft zwar durch aber mit komplett falschen werten
+        if k == 0:
             self.aiph[0] = 5.333333
         else:
             self.aiph[k] = self.ai[k-1] * (1 - self.falm[k]) / self.al[k]
@@ -899,5 +898,5 @@ class Agriculture:
         """
         From step k=0 requires: FR, else nothing
         """
-        self.pfr[k] = self.smooth_fr(k, self.fspd,1) #init wert richtig, aber folgewerte falsch -> smoothing funktion falsch
+        self.pfr[k] = self.smooth_fr(k, self.fspd,1) #update 2004, added init value
 
