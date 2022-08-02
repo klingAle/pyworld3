@@ -48,7 +48,7 @@ if szenario == 1:
     plot_world_variables(world3.time,
                      [world3.hef, world3.hwi],
                      ["HEF", "HWI"],
-                     [[0, 4.35], [0,1]],
+                     [[0, 4.2], [0,1]],
                      img_background="./img/fig 4-1-3.png",
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
 
@@ -85,7 +85,7 @@ if szenario == 2:
     plot_world_variables(world3.time,
                      [world3.hef, world3.hwi],
                      ["HEF", "HWI"],
-                     [[0, 4.35], [0,1]],
+                     [[0, 4.2], [0,1]],
                      img_background="./img/fig 4-2-3.jpg",
                      figsize=(7, 5), title="World3 More Resources - Human Wellfare and Footprint, 2004 Szenario 2")
     

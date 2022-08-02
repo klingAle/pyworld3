@@ -250,7 +250,7 @@ class Agriculture:
     def init_agriculture_constants(self, ali=0.9e9, pali=2.3e9, lfh=0.7,
                                    palt=3.2e9, pl=0.1, alai1=2, alai2=2,
                                    io70=7.9e11, lyf1=1, lyf2=1, sd=0.07,
-                                   uili=8.2e6, alln=6000, uildt=10,
+                                   uili=8.2e6, alln=1000, uildt=10,
                                    lferti=600, ilf=600, fspd=2, sfpc=230):
         """
         Initialize the constant parameters of the agriculture sector.
@@ -616,8 +616,7 @@ class Agriculture:
         """
         State variable, requires previous step only
         """
-        self.al[k] = self.al[j] + self.dt * (self.ldr[jk] - self.ler[jk] -
-                                             self.lrui[jk])
+        self.al[k] = self.al[j] + self.dt * (self.ldr[jk] - self.ler[jk] - self.lrui[jk])
 
     @requires(["pal"])
     def _update_state_pal(self, k, j, jk):
@@ -634,7 +633,7 @@ class Agriculture:
         if k == 0:
             self.f[0] = 430920000000.0
         else:
-            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl) # wird nicht berechnet
+            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
 
     @requires(["fpc"], ["f", "pop"])
     def _update_fpc(self, k):
@@ -699,7 +698,10 @@ class Agriculture:
         """
         From step k requires: CAI, AI, ALAI
         """
-        self.chai[k] = (self.cai[k]-self.ai[k-1])/self.alai[k] # weis nicht ob das richtig ist
+        if k == 0:
+            self.chai[0] = 605066174.66
+        else:
+            self.chai[k] = (self.cai[k]-self.ai[k-1])/self.alai[k] # weis nicht ob das richtig ist
     
     @requires(["ai"],["cai", "alai"])
     def _update_ai(self, k):
@@ -736,7 +738,7 @@ class Agriculture:
         """
         From step k requires: AIPH
         """
-        self.lymc[k] = self.lymc_f(self.aiph[k])
+        self.lymc[k] = self.lymc_f(self.aiph[k]) #changed json file, update 2004
 
     @requires(["ly"], ["lyf", "lfert", "lymc", "lymap"])
     def _update_ly(self, k):
@@ -804,9 +806,8 @@ class Agriculture:
         From step k requires: LY
         """
         self.llmy1[k] = self.llmy1_f(self.ly[k] / self.ilf)
-        self.llmy2[k] = self.llmy2_f(self.ly[k] / self.ilf)
-        self.llmy[k] = clip(self.llmy2[k], self.llmy1[k], self.time[k],
-                            self.pyear)
+        self.llmy2[k] = self.llmy2_f(self.ly[k] / self.ilf) #2004 update, changed json file
+        self.llmy[k] = clip(self.llmy2[k], self.llmy1[k], self.time[k],self.pyear)
 
     @requires(["ler"], ["al", "all"])
     def _update_ler(self, k, kl):
@@ -849,7 +850,7 @@ class Agriculture:
         """
         State variable, requires previous step only
         """
-        self.lfert[k] = self.lfert[j] + self.dt * (self.lfr[jk] - self.lfd[jk])
+        self.lfert[k] = self.lfert[k-1] + self.dt * (self.lfr[jk] - self.lfd[jk])
 
     @requires(["lfdr"], ["ppolx"])
     def _update_lfdr(self, k):

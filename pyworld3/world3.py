@@ -120,7 +120,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               fioac1=0.43, fioac2=0.43,
                               ali=0.9e9, pali=2.3e9, lfh=0.7, palt=3.2e9,
                               pl=0.1, alai1=2, alai2=2, lyf1=1,
-                              lyf2=1, sd=0.07, uili=8.2e6, alln=6000, uildt=10,
+                              lyf2=1, sd=0.07, uili=8.2e6, alln=1000, uildt=10,
                               lferti=600, ilf=600, fspd=2, sfpc=230,
                               ppoli=2.5e7, ppol70=1.36e8,
                               fipm=0.001, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
@@ -134,7 +134,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         Initialize the constant parameters of the 5 sectors. Constants and
         their unit are defined in the documentation of the corresponding
         sectors.
-
+        #changed alln and dcfsn, 2004 update
         """
         self.init_population_constants(p1i, p2i, p3i, p4i, dcfsn, fcest, hsid,
                                        ieat, len, lpd, mtfn, pet, rlt, sad,
