@@ -95,13 +95,14 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000, pyear_pp_tech = 4000,
+    def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000, pyear_pp_tech = 4000, pyear_y_tech = 4000,
                  iphst=1940, verbose=False):
-        print("using updated version of world3, Version: 27.07.2022")
+        print("using updated version of world3, 03.08.2022")
         self.iphst = iphst
         self.pyear = pyear
         self.pyear_res_tech = pyear_res_tech
         self.pyear_pp_tech = pyear_pp_tech
+        self.pyear_y_tech = pyear_y_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -112,23 +113,25 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
 
     def init_world3_constants(self, p1i=65e7, p2i=70e7, p3i=19e7, p4i=6e7,
                               dcfsn=3.8, fcest=4000, hsid=20, ieat=3, len=28,
-                              lpd=20, mtfn=12, pet=4000, rlt=30, sad=20,
-                              zpgt=4000,
-                              ici=2.1e11, sci=1.44e11, iet=4000, iopcd=400,
-                              lfpf=0.75, lufdt=2, icor1=3, icor2=3, scor1=1,
-                              scor2=1, alic1=14, alic2=14, alsc1=20, alsc2=20,
-                              fioac1=0.43, fioac2=0.43,
-                              ali=0.9e9, pali=2.3e9, lfh=0.7, palt=3.2e9,
-                              pl=0.1, alai1=2, alai2=2, lyf1=1,
-                              lyf2=1, sd=0.07, uili=8.2e6, alln=1000, uildt=10,
-                              lferti=600, ilf=600, fspd=2, sfpc=230,
-                              ppoli=2.5e7, ppol70=1.36e8,
-                              fipm=0.001, ppgf2=1, ppgf21=1, pptd1=20, pptd2=20,
-                              nri=1e12, nruf1=1, nruf2=1, druf=4.8e9, tdt = 20,
-                              pp19 = 2.5e7, apct = 4000, io70 = 7.9e11 ,imef = 0.1
-                              ,imti = 10 ,frpm = 0.02
-                              ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1 ,pptd = 20
-                              ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 , ppgf1 = 1 ):    
+                              lpd=20, mtfn=12, pet=4000, rlt=30, sad=20, zpgt=4000,
+                              
+                              ici=2.1e11, sci=1.44e11, iet=4000,
+                              iopcd=400, lfpf=0.75, lufdt=2, icor1=3, icor2=3,
+                              scor1=1, scor2=1, alic1=14, alic2=14,
+                              alsc1=20, alsc2=20, fioac1=0.43, fioac2=0.43,
+                              
+                              ali=0.9e9, pali=2.3e9, lfh=0.7,
+                              palt=3.2e9, pl=0.1, alai1=2, alai2=2,
+                              io70=7.9e11, lyf1=1, sd=0.07,
+                              uili=8.2e6, alln=1000, uildt=10,
+                              lferti=600, ilf=600, fspd=2, sfpc = 230, dfr = 2,
+                              
+                              pp19 = 2.5e7, apct = 4000.0,imef = 0.1 ,imti = 10.0 ,frpm = 0.02
+                              ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1.0 ,pptd = 20.0
+                              ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20.0, ppgf1 = 1.0,
+                              
+                              nri=1e12, nruf1=1, druf = 4.8e9, nri19 = 1e12
+                              ):    
         
         """
         Initialize the constant parameters of the 5 sectors. Constants and
@@ -143,8 +146,8 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                                     icor2, scor1, scor2, alic1, alic2, alsc1,
                                     alsc2, fioac1, fioac2)
         self.init_agriculture_constants(ali, pali, lfh, palt, pl, alai1, alai2,
-                                        io70, lyf1, lyf2, sd, uili, alln,
-                                        uildt, lferti, ilf, fspd, sfpc)
+                                        io70, lyf1, sd, uili, alln,
+                                        uildt, lferti, ilf, fspd, sfpc, dfr)
         self.init_pollution_constants(pp19 , apct , io70 ,imef ,imti ,frpm
                                       ,ghup ,faipm ,amti ,pptd
                                       ,ahl70 ,pp70 , dppolx, tdt, ppgf1)

@@ -82,6 +82,8 @@ class Pollution:
         time step of the simulation [year]. The default is 1.
     pyear : float, optional
         implementation date of new policies [year]. The default is 1975.
+    pyear_pp_tech : float, optional
+        implementation date of new pollution policies [year]. The default is 4000.
     verbose : bool, optional
         print information for debugging. The default is False.
 
@@ -215,7 +217,7 @@ class Pollution:
         self.dppolx = dppolx
         self.tdt= tdt
         self.ppgf1 = ppgf1
-        print("using updated version of pollution sector, Version 27.07.2022")
+        print("using updated version of pollution sector, 27.07.2022")
  
     def init_pollution_variables(self):
         """
@@ -265,13 +267,13 @@ class Pollution:
             "euler".
 
         """
-        var_delay3 = ["PPGR", "PPT","PPAR", "PPGF2", "PPTD"]
+        var_delay3 = ["PPGR", "PPT"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "delay3_"+var_.lower(), func_delay)
             
-        var_dlinf3 = ["PPGR"]
+        var_dlinf3 = ["PPGR", "PPT"]
         for var_ in var_dlinf3:
             func_delay = Dlinf3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
@@ -605,6 +607,7 @@ class Pollution:
         
         self.ppar[k] = self.dlinf3_ppgr(k, self.pptd)
         #es gibt 2 verschiedene delay3 funktionen
+        #self.ppar[k] = self.delay3_ppgr(k, self.pptd)
         
     @requires(["ppar", "ppasr"])
     def _update_pp(self, k):
@@ -686,7 +689,8 @@ class Pollution:
         """
         From step k requires: ppt
         """
-        self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #again starts at 0.15, dont know why, isnt a problem if pyear is after 1950
+        #self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #starts at 0.15
+        self.ppgf2[k] = self.dlinf3_ppt(k, self.tdt) #starts at right init value
         
     @requires(["ppgf"])
     def _update_pptmi(self, k):

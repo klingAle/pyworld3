@@ -38,7 +38,7 @@ import json
 from scipy.interpolate import interp1d
 import numpy as np
 
-from .specials import Smooth, clip
+from .specials import Smooth, clip, Delay3, Dlinf3
 from .utils import requires
 
 
@@ -115,6 +115,10 @@ class Agriculture:
     sfpc : float, optional
         subsistence food per capita
         [vegetable-equivalent kilograms/person-year]. The default is 230.
+    
+    2004 update, added:
+    dfr: float, optional
+        desired food ratio. The default is 2
 
     **Loop 1 - food from investment in land development**
 
@@ -232,26 +236,38 @@ class Agriculture:
         food ratio [].
     pfr : numpy.ndarray
         perceived food ratio [].
+        
+    2004 update, added:
+    frd: numpy.ndarray
+        food ratio difference
+    ytcm: numpy.ndarray
+        yield tech change multiplier
+    ytcr: numpy.ndarray
+        yield tech change rate
+    yt: numpy.ndarray
+        yield tech
 
     """
 
-    def __init__(self, year_min=1900, year_max=2100, dt=0.25, pyear=1975,
+    def __init__(self, year_min=1900, year_max=2100, dt=0.25, pyear=1975, pyear_y_tech = 4000,
                  verbose=False):
         self.pyear = pyear
+        self.pyear_y_tech = pyear_y_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
         self.verbose = False
         self.length = self.year_max - self.year_min
-        self.n = int(self.length / self.dt) # Anzahl Schritte
+        self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
         print('Using local edit of pyworld3')
 
     def init_agriculture_constants(self, ali=0.9e9, pali=2.3e9, lfh=0.7,
                                    palt=3.2e9, pl=0.1, alai1=2, alai2=2,
-                                   io70=7.9e11, lyf1=1, lyf2=1, sd=0.07,
+                                   io70=7.9e11, lyf1=1, sd=0.07,
                                    uili=8.2e6, alln=1000, uildt=10,
-                                   lferti=600, ilf=600, fspd=2, sfpc=230):
+                                   lferti=600, ilf=600, fspd=2, sfpc = 230,
+                                   dfr = 2, tdt = 20):
         """
         Initialize the constant parameters of the agriculture sector.
         Constants and their unit are documented above at the class level.
@@ -268,7 +284,6 @@ class Agriculture:
         self.alai2 = alai2
         self.io70 = io70
         self.lyf1 = lyf1
-        self.lyf2 = lyf2
         # loop 1 & 2 - the investment allocation decision
         self.sd = sd
         # loop 3 -land erosion and urban-industrial use
@@ -282,6 +297,13 @@ class Agriculture:
         # loop 6 - discontinuing land maintenance
         self.fspd = fspd
         self.sfpc = sfpc
+        
+        #update 2004, added
+        self.dfr = dfr
+        self.tdt = tdt
+        
+        print("using updated version of agricultur sector, 03.08.2022")
+
 
     def init_agriculture_variables(self):
         """
@@ -343,6 +365,12 @@ class Agriculture:
         self.falm = np.full((self.n,), np.nan)
         self.fr = np.full((self.n,), np.nan)
         self.pfr = np.full((self.n,), np.nan)
+        #2004 update, added:
+        self.frd = np.full((self.n,), np.nan)
+        self.ytcm = np.full((self.n,), np.nan)
+        self.ytcr = np.full((self.n,), np.nan)
+        self.yt = np.full((self.n,), np.nan)
+        self.lyf2 = np.full((self.n,), np.nan)
 
     def set_agriculture_delay_functions(self, method="euler"):
         """
@@ -363,6 +391,19 @@ class Agriculture:
             func_delay = Smooth(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "smooth_"+var_.lower(), func_delay)
+
+        var_delay3 = ["YT"]
+        for var_ in var_delay3:
+            func_delay = Delay3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "delay3_"+var_.lower(), func_delay)
+            
+        var_dlinf3 = ["YT"]
+        for var_ in var_dlinf3:
+            func_delay = Dlinf3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "dlinf3_"+var_.lower(), func_delay)
+
 
     def set_agriculture_table_functions(self, json_file=None):
         """
@@ -388,7 +429,7 @@ class Agriculture:
                       "LLMY1", "LLMY2", "UILPC",
                       "LFDR",
                       "LFRT",
-                      "FALM"]
+                      "FALM", "YTCM", "FRD"]
 
         for func_name in func_names:
             for table in tables:
@@ -475,6 +516,8 @@ class Agriculture:
         self.lfert[0] = self.lferti
         self.ai[0] = 5e9
         self.pfr[0] = 1
+        self.yt[0] = 1
+
         if alone:
             self.loop0_exogenous()
         self._update_lfc(0)
@@ -521,6 +564,13 @@ class Agriculture:
         # recompute supplementary initial conditions
         self._update_ai(0)
         self._update_pfr(0)
+        
+        #update 2004, added
+        self._update_frd(0)
+        self._update_ytcm(0)
+        self._update_ytcr(0)
+        self._update_yt(0)
+        self._update_lyf2(0)
 
     def loopk_agriculture(self, j, k, jk, kl, alone=False):
         """
@@ -584,6 +634,13 @@ class Agriculture:
         # loop 5
         self._update_lfr(k, kl)
         self._update_lfrt(k)
+        
+        #update 2004, added
+        self._update_frd(k)
+        self._update_ytcm(k)
+        self._update_ytcr(k)
+        self._update_yt(k)
+        self._update_lyf2(k)
 
     def run_agriculture(self):
         """
@@ -747,13 +804,12 @@ class Agriculture:
         """
         self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
 
-    @requires(["lyf"])
+    @requires(["lyf2"])
     def _update_lyf(self, k):
         """
-        From step k requires: nothing
+        From step k requires: LYF2
         """
-        self.lyf[k] = clip(self.lyf2, self.lyf1, self.time[k],
-                           self.pyear)
+        self.lyf[k] = clip(self.lyf2[k], self.lyf1, self.time[k],self.pyear_y_tech) # 2004 update: changed lyf2 to array
 
     @requires(["lymap1", "lymap2", "lymap"], ["io"])
     def _update_lymap(self, k):
@@ -900,4 +956,47 @@ class Agriculture:
         From step k=0 requires: FR, else nothing
         """
         self.pfr[k] = self.smooth_fr(k, self.fspd,1) #update 2004, added init value
+        
+    #2004 update, added:
+    
+    @requires(["fr"])
+    def _update_frd(self, k):
+        """
+        From step k requires: FR
+        """
+        self.frd[k] = self.dfr - self.fr[k]
+        
+    @requires(["frd"])
+    def _update_ytcm(self, k):
+        """
+        From step k requires: FRD
+        """
+        self.ytcm[k] = self.ytcm_f(self.frd[k]) #added in json file
 
+    @requires(["ytcm"])
+    def _update_ytcr(self, k):
+        """
+        From step k requires: YTCM
+        """
+        if self.time[k] < self.pyear_y_tech:
+            self.ytcr[k] = 0
+        else:
+            self.ytcr[k] = self.ytcm[k] * self.yt[k-1]
+            
+    @requires(["ytcr"])
+    def _update_yt(self, k):
+        """
+        From step k requires: FRD
+        """
+        if k > 0:
+            self.yt[k] = self.yt[k-1] + self.ytcr[k]
+        else:
+            self.yt[0] = 1
+            
+    @requires(["yt"])
+    def _update_lyf2(self, k):
+        """
+        From step k requires: YT
+        """
+        self.lyf2[k] = self.dlinf3_yt(k, self.tdt)
+        #self.lyf2[k] = self.delay3_yt(k,self.tdt)

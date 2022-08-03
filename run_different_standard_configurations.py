@@ -22,7 +22,7 @@ szenario = 1
 if szenario == 1:
 
     world3 = World3(dt = 1)
-    world3.init_world3_constants()
+    world3.init_world3_constants(sfpc=230)
     world3.init_world3_variables()
     world3.set_world3_table_functions()
     world3.set_world3_delay_functions()
@@ -51,11 +51,11 @@ if szenario == 1:
                      [[0, 4.2], [0,1]],
                      img_background="./img/fig 4-1-3.png",
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
+    print("Szenario 1, referenz run")
 
-"""
-for i in range (0,200):
-    print(world3.ppolx[i])
-"""
+    for i in range (0,200):
+        print(world3.aiopc[i])
+
 
 if szenario == 2:
     world3 = World3()
@@ -89,4 +89,4 @@ if szenario == 2:
                      img_background="./img/fig 4-2-3.jpg",
                      figsize=(7, 5), title="World3 More Resources - Human Wellfare and Footprint, 2004 Szenario 2")
     
-    
+    print("Szenario 2: More Resources")

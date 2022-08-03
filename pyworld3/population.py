@@ -264,6 +264,8 @@ class Population:
         self.rlt = rlt
         self.sad = sad
         self.zpgt = zpgt
+        
+        print("using updated version of population sector, 03.08.2022")
 
     def init_population_variables(self):
         """
@@ -717,7 +719,8 @@ class Population:
         """
         From step k requires: FPC
         """
-        self.lmf[k] = self.lmf_f(self.fpc[k] / self.sfpc)  # Food >
+        #self.sfpc = 230
+        self.lmf[k] = self.lmf_f(self.fpc[k] / self.sfpc )  # Food > es gibt irgentein problem mit den initial constanten
         #changed table function, 2004 update
 
     @requires(["cmi"], ["iopc"])

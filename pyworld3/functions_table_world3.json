@@ -726,6 +726,23 @@
  },
  {
   "sector": "Agriculture",
+  "x.name": "FRD",
+  "x.values": [
+   -2,
+   0,
+   1,
+   2
+  ],
+  "y.name": "YTCM",
+  "y.values": [
+   0,
+   0,
+   0.04,
+   0.04
+  ]
+ },
+ {
+  "sector": "Agriculture",
   "x.name": "IOPC",
   "x.values": [
    0.0,

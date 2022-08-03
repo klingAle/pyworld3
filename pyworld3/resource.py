@@ -39,7 +39,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from .specials import clip
-from .specials import Delay3
+from .specials import Delay3, Dlinf3
 from .utils import requires
 
 
@@ -147,7 +147,7 @@ class Resource:
         self.druf = druf
         self.tdt = tdt
         
-        print("using updated resources sector, 28.07.2022")
+        print("using updated version of resources sector, 28.07.2022")
 
     def init_resource_variables(self):
         """
@@ -187,15 +187,18 @@ class Resource:
         """
         
         #2004 version added:
-        var_delay3 = ["rt","nruf2","tdt"]
+        var_delay3 = ["RT"]
         for var_ in var_delay3:
             func_delay = Delay3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "delay3_"+var_.lower(), func_delay)
+            
+        var_dlinf3 = ["RT"]
+        for var_ in var_dlinf3:
+            func_delay = Dlinf3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "dlinf3_"+var_.lower(), func_delay)
 
-        """
-        Delay Funktion aus Pollution-class kopiert und Variablen angepasst.
-        """
 
     def set_resource_table_functions(self, json_file=None):
         """
@@ -432,8 +435,9 @@ class Resource:
         From step k requires: rt
         """
     
-        self.nruf2[k] = self.delay3_rt(k, self.tdt)
-            
+        #self.nruf2[k] = self.delay3_rt(k, self.tdt) #strts at 0.15
+        self.nruf2[k] = self.dlinf3_rt(k, self.tdt)    
+        
     @requires (["nruf2"])
     def _update_nruf(self,k):
         """
