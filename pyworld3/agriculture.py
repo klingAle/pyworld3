@@ -673,7 +673,7 @@ class Agriculture:
         """
         State variable, requires previous step only
         """
-        self.al[k] = self.al[j] + self.dt * (self.ldr[jk] - self.ler[jk] - self.lrui[jk])
+        self.al[k] = self.al[k-1] + self.dt * (self.ldr[k-1] - self.ler[k-1] - self.lrui[k-1])
 
     @requires(["pal"])
     def _update_state_pal(self, k, j, jk):
@@ -758,7 +758,7 @@ class Agriculture:
         if k == 0:
             self.chai[0] = 605066174.66
         else:
-            self.chai[k] = (self.cai[k]-self.ai[k-1])/self.alai[k] # weis nicht ob das richtig ist
+            self.chai[k] = (self.cai[k]-self.ai[k])/self.alai[k] # weis nicht ob das richtig ist
     
     @requires(["ai"],["cai", "alai"])
     def _update_ai(self, k):
@@ -770,7 +770,7 @@ class Agriculture:
         if k == 0:
             self.ai[0] = 5e9
         else:
-            self.ai[k] = self.ai[k-1] + self.chai[k]
+            self.ai[k] = self.ai[k-1] + self.chai[k-1]
         
     @requires(["alai"])
     def _update_alai(self, k):
@@ -786,9 +786,9 @@ class Agriculture:
         From step k requires: AI FALM AL
         """
         if k == 0:
-            self.aiph[0] = 5.333333
+            self.aiph[0] = 5.33333333333333
         else:
-            self.aiph[k] = self.ai[k-1] * (1 - self.falm[k]) / self.al[k]
+            self.aiph[k] = self.ai[k] * (1 - self.falm[k]) / self.al[k]
 
     @requires(["lymc"], ["aiph"])
     def _update_lymc(self, k):

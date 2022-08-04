@@ -617,7 +617,7 @@ class Pollution:
         if k == 0: #set init value again, init in loop0 does not work
             self.pp[0] = 2.5e7
         if k > 0:
-            self.pp[k] = self.pp[k-1] + (self.ppar[k-1] - self.ppasr[k-1])
+            self.pp[k] = self.pp[k-1] + (self.ppar[k-1] - self.ppasr[k-1]) # weis nicht ob das richtig ist
 
     @requires(["pp"])
     def _update_ppolx(self, k):

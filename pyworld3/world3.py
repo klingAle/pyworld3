@@ -94,6 +94,12 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
        W. Behrens. *The limits to growth*. New York 102, no. 1972 (1972): 27.
 
     """
+    
+    """
+    j = k - 1
+    kl = k
+    jk = j
+    """
 
     def __init__(self, year_min=1900, year_max=2100, dt=0.5, pyear=1975, pyear_res_tech = 4000, pyear_pp_tech = 4000, pyear_y_tech = 4000,
                  iphst=1940, verbose=False):

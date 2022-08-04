@@ -53,10 +53,6 @@ if szenario == 1:
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
     print("Szenario 1, referenz run")
 
-    for i in range (0,200):
-        print(world3.aiopc[i])
-
-
 if szenario == 2:
     world3 = World3()
     world3.init_world3_constants(nri=2e12)
