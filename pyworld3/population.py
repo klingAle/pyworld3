@@ -39,7 +39,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 import math
 
-from .specials import Dlinf3, Smooth, clip, ramp
+from .specials import Dlinf3, Smooth, clip, ramp, Delay3
 from .utils import requires
 
 
@@ -352,6 +352,12 @@ class Population:
             func_delay = Dlinf3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "dlinf3_"+var_.lower(), func_delay)
+            
+        var_delay3 = ["LE"]
+        for var_ in var_delay3:
+            func_delay = Delay3(getattr(self, var_.lower()),
+                                self.dt, self.time, method=method)
+            setattr(self, "delay3_"+var_.lower(), func_delay)
 
         var_smooth = ["HSAPC", "IOPC"]
         for var_ in var_smooth:
@@ -907,7 +913,12 @@ class Population:
         """
         From step k=0 requires: LE, else nothing
         """
-        self.ple[k] = self.dlinf3_le(k, self.lpd)
+
+        self.ple[k] = self.dlinf3_le(k, self.lpd) #init value "wrong", is equal to le (28) but is 28.09847737...
+        #self.ple[k] = self.delay3_le(k, self.lpd) #init value completly wrong
+        
+        if k < 3:
+            self.ple[k] = 28 #mit dieser Lösung sind zwar die ersten 3 werte gleich des insight makers aber nicht die danach
 
     @requires(["cmple"], ["ple"])
     def _update_cmple(self, k):
