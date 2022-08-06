@@ -22,7 +22,7 @@ szenario = 1
 if szenario == 1:
 
     world3 = World3(dt = 1)
-    world3.init_world3_constants(sfpc=230)
+    world3.init_world3_constants()
     world3.init_world3_variables()
     world3.set_world3_table_functions()
     world3.set_world3_delay_functions()
@@ -54,7 +54,7 @@ if szenario == 1:
     print("Szenario 1, referenz run")
 
 if szenario == 2:
-    world3 = World3()
+    world3 = World3(dt = 1)
     world3.init_world3_constants(nri=2e12)
     world3.init_world3_variables()
     world3.set_world3_table_functions()

@@ -725,8 +725,7 @@ class Population:
         """
         From step k requires: FPC
         """
-        #self.sfpc = 230
-        self.lmf[k] = self.lmf_f(self.fpc[k] / self.sfpc )  # Food > es gibt irgentein problem mit den initial constanten
+        self.lmf[k] = self.lmf_f(self.fpc[k] / self.sfpc )  # Food >
         #changed table function, 2004 update
 
     @requires(["cmi"], ["iopc"])
@@ -916,9 +915,6 @@ class Population:
 
         self.ple[k] = self.dlinf3_le(k, self.lpd) #init value "wrong", is equal to le (28) but is 28.09847737...
         #self.ple[k] = self.delay3_le(k, self.lpd) #init value completly wrong
-        
-        if k < 3:
-            self.ple[k] = 28 #mit dieser Lösung sind zwar die ersten 3 werte gleich des insight makers aber nicht die danach
 
     @requires(["cmple"], ["ple"])
     def _update_cmple(self, k):
