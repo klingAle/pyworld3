@@ -99,10 +99,6 @@ class Pollution:
         Industrial material toxic index. Default is 10
     frpm : float
         Fraction res pers mtl. Default is 0.02
-    al : float [ha]
-        Arable land. Default is 9e8.
-    uil : float [ha]
-        Urban Industrial land. Default is 8.2e6.
     ghup : float
         Gha per unit of pollution. Default is 4e-9
     faipm : float
@@ -178,6 +174,10 @@ class Pollution:
         Absorbtion Land in Gha
     hef : numpy.ndarray
         Human ecological footprint
+    al : numpy.ndarray [ha]
+        Arable land. Default is 9e8.
+    uil : numpy.ndarray [ha]
+        Urban Industrial land. Default is 8.2e6.
 
     """
 

@@ -119,6 +119,8 @@ class Agriculture:
     2004 update, added:
     dfr: float, optional
         desired food ratio. The default is 2
+    tdt : float [years]
+        Technology development time. Default is 20
 
     **Loop 1 - food from investment in land development**
 

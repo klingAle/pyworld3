@@ -747,7 +747,7 @@ class Population:
         """
         From step k=0 requires: HSAPC, else nothing
         """
-        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, 0) #added init value to smoothing function
+        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, 7.2) #added init value to smoothing function
 
     @requires(["lmhs1", "lmhs2", "lmhs"], ["ehspc"])
     def _update_lmhs(self, k):
