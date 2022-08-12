@@ -121,6 +121,10 @@ class Capital:
         fioac variable [].
     fioai : numpy.ndarray
         fraction of industrial output allocated to industry [].
+    cio : numpy.ndarray
+        Cons Industrial  Output
+    ciopc : numpy.ndarray
+        Cons Industrial  Output per capita
 
     **Service subsector**
 

@@ -165,6 +165,8 @@ class Agriculture:
         average lifetime of agricultural inputs [years].
     cai : numpy.ndarray
         current agricultural inputs [dollars/year].
+    chai : numpy.ndarray
+        change agricultural inputs.
     ly : numpy.ndarray
         land yield [vegetable-equivalent kilograms/hectare-year].
     lyf : numpy.ndarray

@@ -14,7 +14,7 @@ Choose Szenario:
     2: More Abundant Nonrenewable Resources
     Mehr hinzufügen
 """
-szenario = 1
+szenario = 3
 
 
 
@@ -46,8 +46,8 @@ if szenario == 1:
                      title="World3 Referenze Run - Material standard of living, 2004 Szenario 1")
 
     plot_world_variables(world3.time,
-                     [world3.hef, world3.hwi],
-                     ["HEF", "HWI"],
+                     [world3.ef, world3.hwi],
+                     ["EF", "HWI"],
                      [[0, 4.2], [0,1]],
                      img_background="./img/fig 4-1-3.png",
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
@@ -79,10 +79,44 @@ if szenario == 2:
                      title="World3 More Resources - Material standard of living, 2004 Szenario 2")
 
     plot_world_variables(world3.time,
-                     [world3.hef, world3.hwi],
-                     ["HEF", "HWI"],
+                     [world3.ef, world3.hwi],
+                     ["EF", "HWI"],
                      [[0, 4.2], [0,1]],
                      img_background="./img/fig 4-2-3.jpg",
                      figsize=(7, 5), title="World3 More Resources - Human Wellfare and Footprint, 2004 Szenario 2")
     
     print("Szenario 2: More Resources")
+    
+if szenario == 3:
+    world3 = World3(dt = 1,pyear_pp_tech = 2002)
+    world3.init_world3_constants(nri=2e12)
+    world3.init_world3_variables()
+    world3.set_world3_table_functions()
+    world3.set_world3_delay_functions()
+    world3.run_world3(fast=False)
+
+    plot_world_variables(world3.time,
+                     [world3.nrfr, world3.io, world3.f, world3.pop,
+                      world3.ppolx],
+                     ["NRFR", "IO", "F", "POP", "PPOLX"],
+                     [[0, 1.975], [0, 4e12], [0, 6e12], [0, 12e9], [0, 40]],
+                     img_background="./img/fig 4-3-1.jpg",
+                     figsize=(7, 5),
+                     title="World3 More Resources and Pollution Control, 2004 Szenario 2")
+
+    plot_world_variables(world3.time,
+                     [world3.le, world3.fpc, world3.sopc, world3.ciopc],
+                     ["LE", "FPC", "SOPC", "CIOPC"],
+                     [[0, 90], [0,1020],[0,970], [0, 250]],
+                     img_background="./img/fig 4-3-2.jpg",
+                     figsize=(7, 5),
+                     title="World3 More Resources and Pollution Control - Material standard of living, 2004 Szenario 2")
+
+    plot_world_variables(world3.time,
+                     [world3.ef, world3.hwi],
+                     ["EF", "HWI"],
+                     [[0, 4.2], [0,1]],
+                     img_background="./img/fig 4-3-3.jpg",
+                     figsize=(7, 5), title="World3 More Resources and Pollution Control - Human Wellfare and Footprint, 2004 Szenario 2")
+    
+    print("Szenario 3: More Resources and Pollution Control")

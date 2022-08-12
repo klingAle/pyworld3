@@ -172,13 +172,8 @@ class Pollution:
         Persistent pollution tech multiplier icor COPM
     abl : numpy.ndarray
         Absorbtion Land in Gha
-    hef : numpy.ndarray
+    ef : numpy.ndarray
         Human ecological footprint
-    al : numpy.ndarray [ha]
-        Arable land. Default is 9e8.
-    uil : numpy.ndarray [ha]
-        Urban Industrial land. Default is 8.2e6.
-
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_pp_tech = 4000,
@@ -251,7 +246,7 @@ class Pollution:
         self.ppgf = np.full((self.n,), np.nan)
         self.pptmi = np.full((self.n,), np.nan)
         self.abl = np.full((self.n,), np.nan)
-        self.hef = np.full((self.n,), np.nan)
+        self.ef = np.full((self.n,), np.nan)
 
     def set_pollution_delay_functions(self, method="euler"):
         """
@@ -501,7 +496,7 @@ class Pollution:
         self._update_ymap2(0)
         self._update_apfay(0)
         self._update_abl(0)
-        self._update_hef(0)
+        self._update_ef(0)
 
     def loopk_pollution(self, j, k, jk, kl, alone=False):
         """
@@ -540,7 +535,7 @@ class Pollution:
         self._update_ymap2(k)
         self._update_apfay(k)
         self._update_abl(k)
-        self._update_hef(k)
+        self._update_ef(k)
 
     def run_pollution(self):
         """
@@ -748,9 +743,9 @@ class Pollution:
         self.abl[k] = self.ppgr[k] * self.ghup
         
     @requires (["abl"])
-    def _update_hef(self,k):
+    def _update_ef(self,k):
         """
         From step k requires: abl
         """
-        self.hef[k] = (self.al[k]/1e9 + self.uil[k]/1e9 + self.abl[k])/1.91
+        self.ef[k] = (self.al[k]/1e9 + self.uil[k]/1e9 + self.abl[k])/1.91
 
