@@ -422,7 +422,7 @@ class Resource:
         """
             
         if self.time[k] >= self.pyear_res_tech:
-            self.rt[k] = self.rt[k-1]+ (self.rt[k-1] * self.rtcm[k]) 
+            self.rt[k] = self.rt[k-1]+ (self.dt*self.rt[k-1] * self.rtcm[k]) 
         if self.time[k] < self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]
             #init

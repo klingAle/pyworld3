@@ -692,9 +692,9 @@ class Agriculture:
         From step k requires: LY AL
         """
         if k == 0:
-            self.f[0] = 430920000000.0
+            self.f[0] = 4.3092e11
         else:
-            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
+            self.f[k] = round(self.ly[k] * self.al[k] * self.lfh * (1 - self.pl),5)
 
     @requires(["fpc"], ["f", "pop"])
     def _update_fpc(self, k):
@@ -774,7 +774,8 @@ class Agriculture:
         if k == 0:
             self.ai[0] = 5e9
         else:
-            self.ai[k] = self.ai[k-1] + self.chai[k-1]
+            #self.ai[k] = self.ai[k-1] + self.dt*self.chai[k-1]
+            self.ai[k] = self.smooth_cai(k, self.alai[k],5e9) #so ist es in VenSim, smooth funktion falsch
         
     @requires(["alai"])
     def _update_alai(self, k):
@@ -790,9 +791,9 @@ class Agriculture:
         From step k requires: AI FALM AL
         """
         if k == 0:
-            self.aiph[0] = 5.33333333333333
+            self.aiph[0] = 5.33333
         else:
-            self.aiph[k] = self.ai[k] * (1 - self.falm[k]) / self.al[k]
+            self.aiph[k] = round(self.ai[k] * (1 - self.falm[k]) / self.al[k],5)
 
     @requires(["lymc"], ["aiph"])
     def _update_lymc(self, k):
@@ -806,7 +807,10 @@ class Agriculture:
         """
         From step k requires: LYF LFERT LYMC LYMAP
         """
-        self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
+        if k == 0:
+            self.ly[0] = 760.0
+        else:
+            self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
 
     @requires(["lyf2"])
     def _update_lyf(self, k):
@@ -993,7 +997,7 @@ class Agriculture:
         From step k requires: FRD
         """
         if k > 0:
-            self.yt[k] = self.yt[k-1] + self.ytcr[k]
+            self.yt[k] = self.yt[k-1] + self.dt*self.ytcr[k]
         else:
             self.yt[0] = 1
             

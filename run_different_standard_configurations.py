@@ -14,14 +14,14 @@ Choose Szenario:
     2: More Abundant Nonrenewable Resources
     Mehr hinzufügen
 """
-szenario = 3
+szenario = 1
 
 
 
 
 if szenario == 1:
 
-    world3 = World3(dt = 1)
+    world3 = World3(dt = 0.5)
     world3.init_world3_constants()
     world3.init_world3_variables()
     world3.set_world3_table_functions()
@@ -52,6 +52,10 @@ if szenario == 1:
                      img_background="./img/fig 4-1-3.png",
                      figsize=(7, 5), title="World3 Referenze Run - Human Wellfare and Footprint, 2004 Szenario 1")
     print("Szenario 1, referenz run")
+
+    for i in range(0,400):
+        print(world3.al[i])
+
 
 if szenario == 2:
     world3 = World3(dt = 1)

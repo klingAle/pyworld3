@@ -612,7 +612,7 @@ class Pollution:
         if k == 0: #set init value again, init in loop0 does not work
             self.pp[0] = 2.5e7
         if k > 0:
-            self.pp[k] = self.pp[k-1] + (self.ppar[k-1] - self.ppasr[k-1]) # weis nicht ob das richtig ist
+            self.pp[k] = self.pp[k-1] + self.dt*(self.ppar[k-1] - self.ppasr[k-1]) # weis nicht ob das richtig ist, sollten die werte nicht aus dem aktuellen zeitschritt genommen werden?
 
     @requires(["pp"])
     def _update_ppolx(self, k):
@@ -677,7 +677,7 @@ class Pollution:
         if k == 0: #set init value again, init in loop0 does not work
             self.ppt[k] = 1 
         if k > 0:
-            self.ppt[k] = self.ppt[k-1] + self.pptcr[k]
+            self.ppt[k] = self.ppt[k-1] + self.dt*self.pptcr[k]
 
     @requires(["ppt"])
     def _update_ppgf2(self, k):

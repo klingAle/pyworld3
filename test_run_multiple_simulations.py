@@ -24,17 +24,19 @@ fpc = wb.add_sheet("Food per Capita")
 ef = wb.add_sheet("Ecological Footprint")
 hwi = wb.add_sheet("Human Welfare Index")
 
+world3 = World3(dt = 1)
+
+
 for i in range(0,9):
     print("Simulation")
     print(i+1)
 
-    world3 = World3(dt = 1) # kann theoretisch ausgelagert werden, bessere laufzeit
     world3.init_world3_constants(dcfsn = dcfsn_f(i))
     world3.init_world3_variables()
     world3.set_world3_table_functions()
     world3.set_world3_delay_functions()
     world3.run_world3(fast=False)
-
+    """
     plot_world_variables(world3.time,
                      [world3.nrfr, world3.io, world3.f, world3.pop,
                       world3.ppolx],
@@ -42,8 +44,8 @@ for i in range(0,9):
                      [[0, 1.975], [0, 4e12], [0, 6e12], [0, 12e9], [0, 40]],
                      img_background="./img/fig 4-1-1.png",
                      figsize=(7, 5),
-                     title="World3 Referenze Run, 2004 Szenario 1")
-
+                     title="World3 Referenze Run, 2004 Szenario 1. Simulation")
+    """
     for y in range(0,200):
         pop.write(y+1, i+1, world3.pop[y])
         d.write(y+1, i+1, world3.d[y])
