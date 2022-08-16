@@ -673,7 +673,7 @@ class Population:
         if k == 0:
             self.p2[0] = self.p2i
         else:
-            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk] - self.mat2[jk])
+            self.p2[k] = self.p2[k-1] + self.dt*(self.mat1[k-1] - self.d2[k-1] - self.mat2[k-1])
 
     @requires(["p3"])
     def _update_state_p3(self, k, j, jk):
@@ -683,8 +683,7 @@ class Population:
         if k == 0:
             self.p3[0] = self.p3i
         else:
-            self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk]
-                                           - self.mat3[jk])
+            self.p3[k] = self.p3[k-1] + self.dt*(self.mat2[k-1] - self.d3[k-1] - self.mat3[k-1])
 
     @requires(["p4"])
     def _update_state_p4(self, k, j, jk):
@@ -694,7 +693,7 @@ class Population:
         if k == 0:
             self.p4[0] = self.p4i
         else:
-            self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
+            self.p4[k] = self.p4[k-1] + self.dt*(self.mat3[k-1] - self.d4[k-1])
 
     @requires(["pop"], ["p1", "p2", "p3", "p4"])
     def _update_pop(self, k):
@@ -806,56 +805,56 @@ class Population:
         """
         From step k requires: P1 M1
         """
-        self.mat1[kl] = self.p1[k] * (1 - self.m1[k]) / 15
+        self.mat1[k] = self.p1[k] * (1 - self.m1[k]) / 15
 
     @requires(["mat2"], ["p2", "m2"])
     def _update_mat2(self, k, kl):
         """
         From step k requires: P2 M2
         """
-        self.mat2[kl] = self.p2[k] * (1 - self.m2[k]) / 30
+        self.mat2[k] = self.p2[k] * (1 - self.m2[k]) / 30
 
     @requires(["mat3"], ["p3", "m3"])
     def _update_mat3(self, k, kl):
         """
         From step k requires: P3 M3
         """
-        self.mat3[kl] = self.p3[k] * (1 - self.m3[k]) / 20
+        self.mat3[k] = self.p3[k] * (1 - self.m3[k]) / 20
 
     @requires(["d1"], ["p1", "m1"])
     def _update_d1(self, k, kl):
         """
         From step k requires: P1 M1
         """
-        self.d1[kl] = self.p1[k] * self.m1[k]
+        self.d1[k] = self.p1[k] * self.m1[k]
 
     @requires(["d2"], ["p2", "m2"])
     def _update_d2(self, k, kl):
         """
         From step k requires: P2 M2
         """
-        self.d2[kl] = self.p2[k] * self.m2[k]
+        self.d2[k] = self.p2[k] * self.m2[k]
 
     @requires(["d3"], ["p3", "m3"])
     def _update_d3(self, k, kl):
         """
         From step k requires: P3 M3
         """
-        self.d3[kl] = self.p3[k] * self.m3[k]
+        self.d3[k] = self.p3[k] * self.m3[k]
 
     @requires(["d4"], ["p4", "m4"])
     def _update_d4(self, k, kl):
         """
         From step k requires: P4 M4
         """
-        self.d4[kl] = self.p4[k] * self.m4[k]
+        self.d4[kl] = self.p4[k] * self.m4[k] # cant change k1 to k, why??
 
     @requires(["d"])
     def _update_d(self, k, jk):
         """
         From step k requires: nothing
         """
-        self.d[k] = self.d1[jk] + self.d2[jk] + self.d3[jk] + self.d4[jk]
+        self.d[k] = self.d1[jk] + self.d2[jk] + self.d3[jk] + self.d4[jk] #cant change jk to k-1,why??
 
     @requires(["cdr"], ["d", "pop"])
     def _update_cdr(self, k):
@@ -913,8 +912,8 @@ class Population:
         From step k=0 requires: LE, else nothing
         """
 
-        self.ple[k] = self.dlinf3_le(k, self.lpd) #init value "wrong", is equal to le (28) but is 28.09847737...
-        #self.ple[k] = self.delay3_le(k, self.lpd) #init value completly wrong
+        self.ple[k] = self.dlinf3_le(k, self.lpd)
+        #self.ple[k] = self.delay3_le(k, self.lpd)
 
     @requires(["cmple"], ["ple"])
     def _update_cmple(self, k):
@@ -935,7 +934,7 @@ class Population:
         """
         From step k requires: LE
         """
-        self.fm[k] = self.fm_f(self.le[k]) #insight maker has a mistake here
+        self.fm[k] = self.fm_f(self.le[k])
 
     @requires(["mtf"], ["fm"])
     def _update_mtf(self, k):
@@ -991,18 +990,18 @@ class Population:
         """
         From step k requires: POP
         """
-        self.cbr[k] = 1000 * self.b[jk] / self.pop[k]
+        self.cbr[k] = 1000 * self.b[k-1] / self.pop[k]
 
     @requires(["b"], ["d", "p2", "tf"])
     def _update_b(self, k, kl):
         """
         From step k requires: D P2 TF
         """
-        self.b[kl] = clip(self.d[k],
+        self.b[k] = clip(self.d[k],
                           self.tf[k] * self.p2[k] * 0.5 / self.rlt,
                           self.time[k], self.pet)
     
-    #neu hinzugefügt
+    #update 2004, added:
     @requires (["LE"])
     def _update_lei (self, k):
         """
@@ -1038,7 +1037,4 @@ class Population:
         From step k requires: lei, ei, gdpi
         """
         self.hwi[k] = (self.lei[k]+self.ei[k]+self.gdpi[k])/3
-        
-        
-        
-        
+    

@@ -272,9 +272,9 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         for k_ in range(1, self.n):
             if self.verbose:
                 print("go loop", k_)
-            self._loopk_world3_fast(k_-1, k_, k_-1, k_)  # sorted updates
+            self._loopk_world3_fast(k_-1, k_, k_-1, k_)
 
-    def _loopk_world3_fast(self, j, k, jk, kl):
+    def _loopk_world3_fast(self, j, k, jk, kl): #function calls have to be reworked
         """
         Run a sorted sequence to update one loop of World3 with
         no checking and no rescheduling [unsafe].

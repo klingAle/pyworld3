@@ -551,7 +551,6 @@ class Capital:
         From step k requires: IC FCAOR CUF ICOR
         """
         
-        
         if k == 0:
             self.io[0] = 6.65e+10
         else:
