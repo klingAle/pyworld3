@@ -165,8 +165,6 @@ class Agriculture:
         average lifetime of agricultural inputs [years].
     cai : numpy.ndarray
         current agricultural inputs [dollars/year].
-    chai : numpy.ndarray
-        change agricultural inputs.
     ly : numpy.ndarray
         land yield [vegetable-equivalent kilograms/hectare-year].
     lyf : numpy.ndarray
@@ -336,7 +334,6 @@ class Agriculture:
         self.aiph = np.full((self.n,), np.nan)
         self.alai = np.full((self.n,), np.nan)
         self.cai = np.full((self.n,), np.nan)
-        self.chai = np.full((self.n,), np.nan)
         self.ly = np.full((self.n,), np.nan)
         self.lyf = np.full((self.n,), np.nan)
         self.lymap = np.full((self.n,), np.nan)
@@ -541,7 +538,6 @@ class Agriculture:
         # loop 2
         self._update_cai(0)
         self._update_alai(0)
-        self._update_chai(0)
         # loop 6
         self._update_falm(0)
         self._update_fr(0)
@@ -612,7 +608,6 @@ class Agriculture:
         # loop 2
         self._update_cai(k)
         self._update_alai(k)
-        self._update_chai(k)
         self._update_ai(k)  # !!! checks cai for all k but useless if >=1
         # loop 6
         self._update_pfr(k)
@@ -694,7 +689,7 @@ class Agriculture:
         if k == 0:
             self.f[0] = 4.3092e11
         else:
-            self.f[k] = round(self.ly[k] * self.al[k] * self.lfh * (1 - self.pl),5)
+            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
 
     @requires(["fpc"], ["f", "pop"])
     def _update_fpc(self, k):
@@ -753,29 +748,13 @@ class Agriculture:
 
     # OPTIMIZE checks more than necessary (cai[k] for k>=1)
     
-    #new added funcion
-    @requires(["chai"],["cai", "ai","alai"])
-    def _update_chai(self, k):
-        """
-        From step k requires: CAI, AI, ALAI
-        """
-        if k == 0:
-            self.chai[0] = 605066174.66
-        else:
-            self.chai[k] = (self.cai[k]-self.ai[k])/self.alai[k] # weis nicht ob das richtig ist
-    
     @requires(["ai"],["cai", "alai"])
     def _update_ai(self, k):
         """
         From step k=0 requires: CAI, else nothing
         """
         
-        #update 2004, changed formula
-        if k == 0:
-            self.ai[0] = 5e9
-        else:
-            #self.ai[k] = self.ai[k-1] + self.dt*self.chai[k-1]
-            self.ai[k] = self.smooth_cai(k, self.alai[k],5e9) #so ist es in VenSim, smooth funktion falsch
+        self.ai[k] = self.smooth_cai(k, self.alai[k], 5e9)#2004 update, added init Val
         
     @requires(["alai"])
     def _update_alai(self, k):
@@ -963,7 +942,7 @@ class Agriculture:
         """
         From step k=0 requires: FR, else nothing
         """
-        self.pfr[k] = self.smooth_fr(k, self.fspd,1) #update 2004, added init value
+        self.pfr[k] = self.smooth_fr(k, self.fspd, 1)#2004 update, added init Val
         
     #2004 update, added:
     

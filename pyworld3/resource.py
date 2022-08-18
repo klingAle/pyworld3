@@ -420,14 +420,12 @@ class Resource:
         """
         From step k requires: rtcm
         """
-            
+        if k == 0:
+          self.rt[0] = 1
         if self.time[k] >= self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]+ (self.dt * self.rt[k-1] * self.rtcm[k]) 
         if self.time[k] < self.pyear_res_tech:
             self.rt[k] = self.rt[k-1]
-            #init
-            if k == 0:
-                self.rt[0] = 1
     
     @requires (["rt"])
     def _update_nruf2(self,k):

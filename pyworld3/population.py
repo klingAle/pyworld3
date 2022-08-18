@@ -746,7 +746,7 @@ class Population:
         """
         From step k=0 requires: HSAPC, else nothing
         """
-        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, 7.2) #added init value to smoothing function
+        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, self.hsapc[0])#2004 update, added init Val
 
     @requires(["lmhs1", "lmhs2", "lmhs"], ["ehspc"])
     def _update_lmhs(self, k):
@@ -868,7 +868,7 @@ class Population:
         """
         From step k=0 requires: IOPC, else nothing
         """
-        self.aiopc[k] = self.smooth_iopc(k, self.ieat, 43.3) #update 2004, added init value
+        self.aiopc[k] = self.smooth_iopc(k, self.ieat, self.iopc[0]) #2004 update, added init Val
 
     @requires(["diopc"], ["iopc"], check_after_init=False)
     def _update_diopc(self, k):

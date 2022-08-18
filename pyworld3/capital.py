@@ -505,7 +505,7 @@ class Capital:
         From step k=0 requires: LUF, else nothing
         """
         
-        self.lufd[k] = self.smooth_luf(k, self.lufdt, 1) #update 2004, added init value
+        self.lufd[k] = self.smooth_luf(k, self.lufdt, 1)#2004 update, added init Val
 
     @requires(["cuf"], ["lufd"])
     def _update_cuf(self, k):
