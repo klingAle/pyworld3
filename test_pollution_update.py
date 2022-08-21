@@ -24,7 +24,7 @@ plot_world_variables(pol.time, [pol.ppgf2, pol.pptmi, pol.pii], ["PPGF2","PPTMI"
 
 plot_world_variables(pol.time, [pol.fio70, pol.ymap1,pol.ymap2], ["FIO70","YMAP1","YMAP2"], [[9e-2,2e2],[0,1.1],[0,1.1]], figsize=(7, 5), title="Pollution Variablen 7")
 
-plot_world_variables(pol.time, [pol.apfay, pol.abl, pol.hef], ["APFAY","ABL","HEF"], [[0,1.1],[1e5,6e8],[7e4,4e8]], figsize=(7, 5), title="Pollution Variablen 8")
+plot_world_variables(pol.time, [pol.apfay, pol.abl, pol.ef], ["APFAY","ABL","EF"], [[0,1.1],[1e5,6e8],[7e4,4e8]], figsize=(7, 5), title="Pollution Variablen 8")
 
 
 print('pyworld3_03 Update Version')

@@ -20,7 +20,7 @@ ef = wb.add_sheet("Ecological Footprint")
 hwi = wb.add_sheet("Human Welfare Index")
 
 #berechnen der eingangsparameter "sprünge"
-sim_anzahl = 20
+sim_anzahl = 10
 start_val = 3
 end_val = 4
 delta = (end_val-start_val)/sim_anzahl

@@ -510,6 +510,7 @@ class Agriculture:
             is False.
 
         """
+
         # Set initial conditions
         self.al[0] = self.ali
         self.pal[0] = self.pali
@@ -667,6 +668,7 @@ class Agriculture:
         """
         self.lfc[k] = self.al[k] / self.palt
 
+
     @requires(["al"])
     def _update_state_al(self, k, j, jk):
         """
@@ -751,7 +753,7 @@ class Agriculture:
     @requires(["ai"],["cai", "alai"])
     def _update_ai(self, k):
         """
-        From step k=0 requires: CAI, else nothing
+        From step k=0 requires: CAI
         """
         
         self.ai[k] = self.smooth_cai(k, self.alai[k], 5e9)#2004 update, added init Val
@@ -791,7 +793,7 @@ class Agriculture:
         else:
             self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
 
-    @requires(["lyf2"])
+    @requires(["lyf"],["lyf2"])
     def _update_lyf(self, k):
         """
         From step k requires: LYF2
@@ -946,21 +948,21 @@ class Agriculture:
         
     #2004 update, added:
     
-    @requires(["fr"])
+    @requires(["frd"],["fr"])
     def _update_frd(self, k):
         """
         From step k requires: FR
         """
         self.frd[k] = self.dfr - self.fr[k]
         
-    @requires(["frd"])
+    @requires(["ytcm"],["frd"])
     def _update_ytcm(self, k):
         """
         From step k requires: FRD
         """
         self.ytcm[k] = self.ytcm_f(self.frd[k]) #added in json file
 
-    @requires(["ytcm"])
+    @requires(["ytcr"],["ytcm"])
     def _update_ytcr(self, k):
         """
         From step k requires: YTCM
@@ -970,7 +972,7 @@ class Agriculture:
         else:
             self.ytcr[k] = self.ytcm[k] * self.yt[k-1]
             
-    @requires(["ytcr"])
+    @requires(["yt"],["ytcr"])
     def _update_yt(self, k):
         """
         From step k requires: FRD
@@ -980,7 +982,7 @@ class Agriculture:
         else:
             self.yt[0] = 1
             
-    @requires(["yt"])
+    @requires(["lyf2"],["yt"])
     def _update_lyf2(self, k):
         """
         From step k requires: YT

@@ -309,6 +309,7 @@ class Pollution:
         the 4 other remaining sectors in a full simulation of World3.
 
         """
+
         # constants
         self.swat = 0
         self.tdd = 10
@@ -339,6 +340,8 @@ class Pollution:
         self.io12 = np.full((self.n,), np.nan)
         self.io2 = np.full((self.n,), np.nan)
         self.iopc = np.full((self.n,), np.nan)
+        self.uil = np.full((self.n,), 8.2e6)
+        
         # tables
         func_names = ["PCRUM", "POP", "AIPH", "AL", "PCTCM", "LMP1", "LMP2",
                       "LFDR1", "LFDR2"]
@@ -469,6 +472,7 @@ class Pollution:
             is False.
 
         """
+
         self.pp[0] = self.pp19 #set init value
         self.ppt[0] = 1 
         self._update_pcrum(0)
@@ -563,7 +567,7 @@ class Pollution:
         """
         self.pcrum[k] = self.pcrum_f(self.iopc[k])
 
-    @requires(["pcrum"])
+    @requires(["ppgi"],["pcrum"])
     def _update_ppgi(self, k):
         """
         From step k requires: pcrum
@@ -571,7 +575,7 @@ class Pollution:
 
         self.ppgi[k] = self.pcrum[k]*self.pop[k]*self.frpm*self.imef*self.imti
     
-    @requires(["aiph"])
+    @requires(["ppga"],["aiph"])
     def _update_ppga(self, k):
         """
         From step k requires: aiph
@@ -579,14 +583,14 @@ class Pollution:
 
         self.ppga[k] = self.aiph[k]*self.al[k]*self.faipm*self.amti
 
-    @requires(["ppgf2"])
+    @requires(["ppgf"],["ppgf2"])
     def _update_ppgf(self, k):
         """
         From step k requires: nothing
         """
         self.ppgf[k] = clip(self.ppgf2[k], self.ppgf1, self.time[k], self.pyear_pp_tech)
         
-    @requires(["ppgf"],["ppga"],["ppgi"])
+    @requires(["ppgr"],["ppgf"],["ppga"],["ppgi"])
     def _update_ppgr(self, k):
         """
         From step k requires: ppgf, ppga, ppgi
@@ -594,17 +598,16 @@ class Pollution:
         
         self.ppgr[k] = (self.ppgi[k] + self.ppga[k]) * self.ppgf[k]
 
-    @requires(["ppgr"])
+    @requires(["ppar"],["ppgr"])
     def _update_ppar(self, k):
         """
         From step k requires: ppgr
         """
         
         self.ppar[k] = self.dlinf3_ppgr(k, self.pptd)
-        #es gibt 2 verschiedene delay3 funktionen
         #self.ppar[k] = self.delay3_ppgr(k, self.pptd)
         
-    @requires(["ppar", "ppasr"])
+    @requires(["pp"],["ppar", "ppasr"])
     def _update_pp(self, k):
         """
         From step k requires: ppar, ppasr
@@ -614,7 +617,7 @@ class Pollution:
         if k > 0:
             self.pp[k] = self.pp[k-1] + self.dt*(self.ppar[k-1] - self.ppasr[k-1]) # weis nicht ob das richtig ist, sollten die werte nicht aus dem aktuellen zeitschritt genommen werden?
 
-    @requires(["pp"])
+    @requires(["ppolx"],["pp"])
     def _update_ppolx(self, k):
         """
         From step k requires: pp
@@ -622,42 +625,42 @@ class Pollution:
         self.ppolx[k] = self.pp[k]/self.pp70
 
 
-    @requires(["ppolx"])
+    @requires(["ahlm"],["ppolx"])
     def _update_ahlm(self, k):
         """
         From step k requires: ppolx
         """
         self.ahlm[k] = self.ahlm_f(self.ppolx[k])
     
-    @requires(["ahlm"])
+    @requires(["ahl"],["ahlm"])
     def _update_ahl(self, k):
         """
         From step k requires: ahlm
         """
         self.ahl[k] = self.ahl70 * self.ahlm[k]
 
-    @requires(["ahl"])
+    @requires(["ppasr"],["ahl"])
     def _update_ppasr(self, k):
         """
         From step k requires: ahl
         """
         self.ppasr[k] = self.pp[k]/(1.4*self.ahl[k])
 
-    @requires(["ppolx"])
+    @requires(["pptc"],["ppolx"])
     def _update_pptc(self, k):
         """
         From step k requires: ppolx
         """
         self.pptc[k] = 1-(self.ppolx[k]/self.dppolx)
 
-    @requires(["pptc"])
+    @requires(["pptcm"],["pptc"])
     def _update_pptcm(self, k):
         """
         From step k requires: pptc
         """
         self.pptcm[k] = self.pptcm_f(self.pptc[k]) 
 
-    @requires(["pptcm"])
+    @requires(["pptcr"],["pptcm"])
     def _update_pptcr(self, k):
         """
         From step k requires: pptcm
@@ -669,7 +672,7 @@ class Pollution:
             self.pptcr[k] = 0
 
         
-    @requires(["pptcr"])
+    @requires(["ppt"],["pptcr"])
     def _update_ppt(self, k):
         """
         From step k requires: pptcr
@@ -679,7 +682,7 @@ class Pollution:
         if k > 0:
             self.ppt[k] = self.ppt[k-1] + self.dt*self.pptcr[k]
 
-    @requires(["ppt"])
+    @requires(["ppgf2"],["ppt"])
     def _update_ppgf2(self, k):
         """
         From step k requires: ppt
@@ -687,14 +690,14 @@ class Pollution:
         #self.ppgf2[k] =  self.delay3_ppt(k,self.tdt) #starts at 0.15
         self.ppgf2[k] = self.dlinf3_ppt(k, self.tdt) #starts at right init value
         
-    @requires(["ppgf"])
+    @requires(["ppmi"],["ppgf"])
     def _update_pptmi(self, k):
         """
         From step k requires: ppgf
         """
         self.pptmi[k] =  self.pptmi_f(self.ppgf[k])
 
-    @requires(["ppgf","ppgi", "io"])
+    @requires(["pii"],["ppgf","ppgi", "io"])
     def _update_pii(self, k):
         """
         From step k requires: ppgf, ppgi, io
@@ -710,21 +713,21 @@ class Pollution:
         """
         self.fio70[k] = self.io[k]/self.io70
 
-    @requires(["fio70"])
+    @requires(["ymap1"],["fio70"])
     def _update_ymap1(self, k):
         """
         From step k requires: fio70
         """
         self.ymap1[k] = self.ymap1_f(self.fio70[k])
 
-    @requires(["fio70"])
+    @requires(["ymap2"],["fio70"])
     def _update_ymap2(self, k):
         """
         From step k requires: fio70
         """
         self.ymap2[k] = self.ymap2_f(self.fio70[k])
 
-    @requires(["ymap1","ymap2"])
+    @requires(["apfay"],["ymap1","ymap2"])
     def _update_apfay(self, k):
         """
         From step k requires: ymap1, ymap2
@@ -735,14 +738,14 @@ class Pollution:
         else:
             self.apfay[k] = self.ymap1[k]
 
-    @requires(["ppgr"])
+    @requires(["abl"],["ppgr"])
     def _update_abl(self,k):
         """
         From step k requires: ppgr
         """
         self.abl[k] = self.ppgr[k] * self.ghup
         
-    @requires (["abl"])
+    @requires (["ef"],["abl"])
     def _update_ef(self,k):
         """
         From step k requires: abl

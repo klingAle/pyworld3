@@ -390,6 +390,7 @@ class Capital:
             is False.
 
         """
+
         if alone:
             self.loop0_exogenous()
         # Set initial conditions
@@ -504,7 +505,7 @@ class Capital:
         """
         From step k=0 requires: LUF, else nothing
         """
-        
+
         self.lufd[k] = self.smooth_luf(k, self.lufdt, 1)#2004 update, added init Val
 
     @requires(["cuf"], ["lufd"])
@@ -522,7 +523,7 @@ class Capital:
         if k == 0:
             self.ic[k] = self.ici
         else:
-            self.ic[k] = self.ic[k-1] + self.dt * (self.icir[k-1] - self.icdr[k-1])
+            self.ic[k] = self.ic[jk] + self.dt * (self.icir[jk] - self.icdr[jk])
 
     @requires(["alic"])
     def _update_alic(self, k):
@@ -640,7 +641,7 @@ class Capital:
                              self.pyear)
     
     #added, 2004 update
-    @requires(["fioac"], ["io"])
+    @requires(["cio"],["fioac","io"])
     def _update_cio(self, k):
         """
         From step k requires: fioas, io
@@ -648,7 +649,7 @@ class Capital:
         self.cio[k] = self.fioac[k] * self.io[k]
     
     #added, 2004 update
-    @requires(["cio"], ["pop"])
+    @requires(["ciopc"], ["cio","pop"])
     def _update_ciopc(self, k):
         """
         From step k requires: cio, pop

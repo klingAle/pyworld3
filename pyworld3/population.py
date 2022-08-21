@@ -54,7 +54,7 @@ class Population:
     which should be provided by the other sectors. Start from the following
     example:
 
-    >>> pop = Population()
+    >>> pop = pop.Population()
     >>> pop.set_population_table_functions()
     >>> pop.init_population_constants()
     >>> pop.init_population_variables()
@@ -492,8 +492,8 @@ class Population:
             is False.
 
         """
+
         # Set initial conditions    
-        
         self.p1[0] = self.p1i
         self.p2[0] = self.p2i
         self.p3[0] = self.p3i
@@ -660,10 +660,11 @@ class Population:
         """
         State variable, requires previous step only
         """
+
         if k == 0:
             self.p1[0] = self.p1i
         else:
-            self.p1[k] = self.p1[k-1] + self.dt*(self.b[k-1] - self.d1[k-1] - self.mat1[k-1])
+            self.p1[k] = self.p1[j] + self.dt*(self.b[jk] - self.d1[jk] - self.mat1[jk])
 
     @requires(["p2"])
     def _update_state_p2(self, k, j, jk):
@@ -673,7 +674,7 @@ class Population:
         if k == 0:
             self.p2[0] = self.p2i
         else:
-            self.p2[k] = self.p2[k-1] + self.dt*(self.mat1[k-1] - self.d2[k-1] - self.mat2[k-1])
+            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk] - self.mat2[jk])
 
     @requires(["p3"])
     def _update_state_p3(self, k, j, jk):
@@ -683,7 +684,7 @@ class Population:
         if k == 0:
             self.p3[0] = self.p3i
         else:
-            self.p3[k] = self.p3[k-1] + self.dt*(self.mat2[k-1] - self.d3[k-1] - self.mat3[k-1])
+            self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk] - self.mat3[jk])
 
     @requires(["p4"])
     def _update_state_p4(self, k, j, jk):
@@ -693,7 +694,7 @@ class Population:
         if k == 0:
             self.p4[0] = self.p4i
         else:
-            self.p4[k] = self.p4[k-1] + self.dt*(self.mat3[k-1] - self.d4[k-1])
+            self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
 
     @requires(["pop"], ["p1", "p2", "p3", "p4"])
     def _update_pop(self, k):
@@ -746,8 +747,8 @@ class Population:
         """
         From step k=0 requires: HSAPC, else nothing
         """
-        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, self.hsapc[0])#2004 update, added init Val
-
+        self.ehspc[k] = self.smooth_hsapc(k, self.hsid, self.hsapc[0]) #2004 update, added init Val
+        
     @requires(["lmhs1", "lmhs2", "lmhs"], ["ehspc"])
     def _update_lmhs(self, k):
         """
@@ -805,56 +806,56 @@ class Population:
         """
         From step k requires: P1 M1
         """
-        self.mat1[k] = self.p1[k] * (1 - self.m1[k]) / 15
+        self.mat1[kl] = self.p1[k] * (1 - self.m1[k]) / 15
 
     @requires(["mat2"], ["p2", "m2"])
     def _update_mat2(self, k, kl):
         """
         From step k requires: P2 M2
         """
-        self.mat2[k] = self.p2[k] * (1 - self.m2[k]) / 30
+        self.mat2[kl] = self.p2[k] * (1 - self.m2[k]) / 30
 
     @requires(["mat3"], ["p3", "m3"])
     def _update_mat3(self, k, kl):
         """
         From step k requires: P3 M3
         """
-        self.mat3[k] = self.p3[k] * (1 - self.m3[k]) / 20
+        self.mat3[kl] = self.p3[k] * (1 - self.m3[k]) / 20
 
     @requires(["d1"], ["p1", "m1"])
     def _update_d1(self, k, kl):
         """
         From step k requires: P1 M1
         """
-        self.d1[k] = self.p1[k] * self.m1[k]
+        self.d1[kl] = self.p1[k] * self.m1[k]
 
     @requires(["d2"], ["p2", "m2"])
     def _update_d2(self, k, kl):
         """
         From step k requires: P2 M2
         """
-        self.d2[k] = self.p2[k] * self.m2[k]
+        self.d2[kl] = self.p2[k] * self.m2[k]
 
     @requires(["d3"], ["p3", "m3"])
     def _update_d3(self, k, kl):
         """
         From step k requires: P3 M3
         """
-        self.d3[k] = self.p3[k] * self.m3[k]
+        self.d3[kl] = self.p3[k] * self.m3[k]
 
     @requires(["d4"], ["p4", "m4"])
     def _update_d4(self, k, kl):
         """
         From step k requires: P4 M4
         """
-        self.d4[kl] = self.p4[k] * self.m4[k] # cant change k1 to k, why??
+        self.d4[kl] = self.p4[k] * self.m4[k]
 
     @requires(["d"])
     def _update_d(self, k, jk):
         """
         From step k requires: nothing
         """
-        self.d[k] = self.d1[jk] + self.d2[jk] + self.d3[jk] + self.d4[jk] #cant change jk to k-1,why??
+        self.d[k] = self.d1[jk] + self.d2[jk] + self.d3[jk] + self.d4[jk] 
 
     @requires(["cdr"], ["d", "pop"])
     def _update_cdr(self, k):
@@ -990,33 +991,33 @@ class Population:
         """
         From step k requires: POP
         """
-        self.cbr[k] = 1000 * self.b[k-1] / self.pop[k]
+        self.cbr[k] = 1000 * self.b[jk] / self.pop[k]
 
     @requires(["b"], ["d", "p2", "tf"])
     def _update_b(self, k, kl):
         """
         From step k requires: D P2 TF
         """
-        self.b[k] = clip(self.d[k],
+        self.b[kl] = clip(self.d[k],
                           self.tf[k] * self.p2[k] * 0.5 / self.rlt,
                           self.time[k], self.pet)
     
     #update 2004, added:
-    @requires (["LE"])
+    @requires (["lei"],["le"])
     def _update_lei (self, k):
         """
         From step k requires: LE
         """
         self.lei[k] = self.lei_f(self.le[k])
     
-    @requires (["AIOPC"])    
+    @requires (["gdpc"],["aiopc"])    
     def _update_gdpc (self, k):
         """
-        From step k requires: aipc
+        From step k requires: aiopc
         """
         self.gdpc[k] = self.gdpc_f(self.aiopc[k])
     
-    @requires (["GDPC"])    
+    @requires (["gdpi"],["gdpc"])    
     def _update_gdpi (self, k):
         """
         From step k requires: GDPC
@@ -1024,14 +1025,14 @@ class Population:
         
         self.gdpi[k] = (math.log(self.gdpc[k])-math.log(24))/(math.log(9508)-math.log(24))
         
-    @requires (["GDPC"])    
+    @requires (["ei"],["gdpc"])    
     def _update_ei (self, k):
         """
         From step k requires: gdpc
         """
         self.ei[k] = self.ei_f(self.gdpc[k])
     
-    @requires(["EI", "LEI", "GDPI"])    
+    @requires(["hwi"],["ei", "lei", "gdpi"])    
     def _update_hwi (self, k):
         """
         From step k requires: lei, ei, gdpi

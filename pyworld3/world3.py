@@ -136,7 +136,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
                               ,ghup = 4e-9 ,faipm = 0.001 ,amti = 1.0 ,pptd = 20.0
                               ,ahl70 = 1.5 ,pp70 = 1.36e8, dppolx = 1.2 ,tdt = 20.0, ppgf1 = 1.0,
                               
-                              nri=1e12, nruf1=1, druf = 4.8e9, nri19 = 1e12
+                              nri=1e12, nruf1=1, druf = 4.8e9
                               ):    
         
         """
@@ -233,6 +233,7 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
         each loop computation until all variables are computed.
         """
 
+           
         self.redo_loop = True
         while self.redo_loop == True:
             self.redo_loop = False
@@ -241,7 +242,8 @@ class World3(Population, Capital, Agriculture, Pollution, Resource):
             self.loop0_agriculture()
             self.loop0_pollution()
             self.loop0_resource()
-
+           
+    
         for k_ in range(1, self.n):
             self.redo_loop = True
             while self.redo_loop:

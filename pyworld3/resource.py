@@ -39,21 +39,19 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 from .specials import clip
-from .specials import Delay3, Dlinf3
 from .utils import requires
+from .specials import Dlinf3
 
 
 class Resource:
     """
     Nonrenewable Resource sector. Can be run independantly from other sectors
     with exogenous inputs. The initial code is defined p.405.
-
     Examples
     --------
     Running the nonerenewable resource sector alone requires artificial
     (exogenous) inputs which should be provided by the other sectors. Start
     from the following example:
-
     >>> rsc = Resource()
     >>> rsc.set_resource_table_functions()
     >>> rsc.init_resource_variables()
@@ -61,7 +59,6 @@ class Resource:
     >>> rsc.set_resource_delay_functions()
     >>> rsc.init_exogenous_inputs()
     >>> rsc.run_resource()
-
     Parameters
     ----------
     year_min : float, optional
@@ -73,18 +70,17 @@ class Resource:
     pyear : float, optional
         implementation date of new policies [year]. The default is 1975.
     pyear_res_tech : float, optional
-        implementaion date of resource tech [year]. The default is 4000.
+        implementation date of resource policies [year]. The default is 4000.
     verbose : bool, optional
         print information for debugging. The default is False.
-
     Attributes
     ----------
     nri : float, optional
         nonrenewable resources initial [resource units]. The default is 1e12.
     nruf1 : float, optional
         nruf value before time=pyear []. The default is 1.
-    nruf2 : float, optional
-        nruf value after time=pyear []. The default is 1.
+    nruf2 : numpy.ndarray
+        nruf value after time=pyear []
     nr : numpy.ndarray
         nonrenewable resources [resource units]. It is a state variable.
     nrfr : numpy.ndarray
@@ -101,27 +97,24 @@ class Resource:
         fcaor value before time=pyear [].
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
-<<<<<<< Updated upstream
-    
-    New Varibles(2004):
-    druf : float
-        Desired Resource Utilization Factor[resource units]. The default is 4.8e9.
-    tdt : float, optional
-        Technology development time [years]. Default is 20 years.
-    rt : numpy array
-        Res Tech; Stock []
-    rtc : numpy array
-        Resource Technology Change
+    rtc : numpy.ndarray
+        resource tech change
+    drur : float
+        desired resource utilization rate. The default is 4.8e8
     rtcm : numpy.ndarray
-        Resource Technology Change Multiplier
-    rtcr : numpy.ndarray
-        Res Tech Change Rate
+        resource tech change multiplier
+    rtcr :numpy.ndarray
+        resource tech change rate
+    rt : numpy.ndarray
+        resource tech
+    tdt : float
+        technology development time. The default is 20.
     """
 
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_res_tech = 4000,
                  verbose=False):
         self.pyear = pyear
-        self.pyear_res_tech  = pyear_res_tech
+        self.pyear_res_tech = pyear_res_tech
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
@@ -130,87 +123,65 @@ class Resource:
         self.n = int(self.length / self.dt)
         self.time = np.arange(self.year_min, self.year_max, self.dt)
 
-
-    def init_resource_constants(self, nri=1e12, nruf1=1, druf = 4.8e9, tdt = 20, nri19 = 1e12):
+    def init_resource_constants(self, nri=1e12, nruf1=1, drur=4.8e9, tdt = 20):
         """
         Initialize the constant parameters of the resource sector. Constants
         and their unit are documented above at the class level.
-
         """
-        
         self.nri = nri
-        self.nri19 = nri19
         self.nruf1 = nruf1
-
-        
-        #2004 version added:
-        self.druf = druf
+        self.drur = drur
         self.tdt = tdt
         
-        print("using updated version of resources sector, 28.07.2022")
+        print("using updated version of resources sector, 21.08.2022")
 
     def init_resource_variables(self):
         """
         Initialize the state and rate variables of the resource sector
         (memory allocation). Variables and their unit are documented above at
         the class level.
-
         """
         self.nr = np.full((self.n,), np.nan)
         self.nrfr = np.full((self.n,), np.nan)
         self.nruf = np.full((self.n,), np.nan)
+        self.nruf2 = np.full((self.n,), np.nan)
         self.nrur = np.full((self.n,), np.nan)
         self.pcrum = np.full((self.n,), np.nan)
         self.fcaor = np.full((self.n,), np.nan)
         self.fcaor1 = np.full((self.n,), np.nan)
         self.fcaor2 = np.full((self.n,), np.nan)
-        
-        #2004 version added:
         self.rtc = np.full((self.n,), np.nan)
         self.rtcm = np.full((self.n,), np.nan)
+        self.rtcr = np.full((self.n,), np.nan)
         self.rt = np.full((self.n,), np.nan)
-        self.rtm = np.full((self.n,), np.nan)
-        self.nruf2 = np.full((self.n,), np.nan)
-
+        
     def set_resource_delay_functions(self, method="euler"):
         """
         Set the linear smoothing and delay functions of the 1st or the 3rd
         order, for the resource sector. One should call
         `self.set_resource_delay_functions` after calling
         `self.init_resource_constants`.
-
         Parameters
         ----------
         method : str, optional
             Numerical integration method: "euler" or "odeint". The default is
             "euler".
         """
-        
-        #2004 version added:
-        var_delay3 = ["RT"]
-        for var_ in var_delay3:
-            func_delay = Delay3(getattr(self, var_.lower()),
-                                self.dt, self.time, method=method)
-            setattr(self, "delay3_"+var_.lower(), func_delay)
-            
         var_dlinf3 = ["RT"]
         for var_ in var_dlinf3:
             func_delay = Dlinf3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "dlinf3_"+var_.lower(), func_delay)
 
-
     def set_resource_table_functions(self, json_file=None):
         """
         Set the nonlinear functions of the resource sector, based on a json
         file. By default, the `functions_table_world3.json` file from pyworld3
         is used.
-
         Parameters
         ----------
         json_file : file, optional
             json file containing all tables. The default is None.
-
         """
         if json_file is None:
             json_file = "./functions_table_world3.json"
@@ -234,7 +205,6 @@ class Resource:
         Initialize all the necessary constants and variables to run the
         resource sector alone. These exogenous parameters are outputs from
         the 4 other remaining sectors in a full simulation of World3.
-
         """
         # constants
         self.popi = 1.65e9
@@ -247,7 +217,6 @@ class Resource:
         self.fioac = 0.43
         self.alic = 14
         self.icor = 3
-        
         # variables
         self.pop = np.full((self.n,), np.nan)
         self.pop1 = np.full((self.n,), np.nan)
@@ -262,7 +231,6 @@ class Resource:
         Run a sorted sequence to update one loop of the exogenous parameters.
         `@requires` decorator checks that all dependencies are computed
         previously.
-
         """
         j = k - 1
         kl = k
@@ -280,7 +248,6 @@ class Resource:
     def loop0_exogenous(self):
         """
         Run a sequence to initialize the exogenous parameters (loop with k=0).
-
         """
         self.ic[0] = self.ici
         self.pop1[0] = self.popi * np.exp(self.gc * (self.time[0] - 1900))
@@ -293,60 +260,53 @@ class Resource:
     def loop0_resource(self, alone=False):
         """
         Run a sequence to initialize the resource sector (loop with k=0).
-
         Parameters
         ----------
         alone : boolean, optional
             if True, run the sector alone with exogenous inputs. The default
             is False.
-
         """
-        self.nr[0] = self.nri # set initial values
-        self.rt[0] = 1
+        self.nr[0] = self.nri
         self._update_nrfr(0)
         self._update_fcaor(0)
         if alone:
             self.loop0_exogenous()
-        self._update_pcrum(0)
-        self._update_nrur(0, 0)
-        #2004 version added:
         self._update_rtc(0)
         self._update_rtcm(0)
+        self._update_rtcr(0)
         self._update_rt(0)
         self._update_nruf2(0)
         self._update_nruf(0)
+        self._update_pcrum(0)
+        self._update_nrur(0, 0)
 
     def loopk_resource(self, j, k, jk, kl, alone=False):
         """
         Run a sequence to update one loop of the resource sector.
-
         Parameters
         ----------
         alone : boolean, optional
             if True, run the sector alone with exogenous inputs. The default
             is False.
-
         """
         self._update_state_nr(k, j, jk)
         self._update_nrfr(k)
         self._update_fcaor(k)
         if alone:
             self.loopk_exogenous(k)
-        self._update_pcrum(k)
-        self._update_nrur(k, kl)
-        
-        #2004 version added:
         self._update_rtc(k)
         self._update_rtcm(k)
+        self._update_rtcr(k)
         self._update_rt(k)
         self._update_nruf2(k)
         self._update_nruf(k)
+        self._update_pcrum(k)
+        self._update_nrur(k, kl)
 
     def run_resource(self):
         """
         Run a sequence of updates to simulate the resource sector alone with
         exogenous inputs.
-
         """
         self.redo_loop = True
         while self.redo_loop:
@@ -365,14 +325,14 @@ class Resource:
         """
         State variable, requires previous step only
         """
-        self.nr[k] = self.nr[k-1] - self.dt * self.nrur[k-1]
+        self.nr[k] = self.nr[j] - self.dt * self.nrur[jk]
 
     @requires(["nrfr"], ["nr"])
     def _update_nrfr(self, k):
         """
         From step k requires: NR
         """
-        self.nrfr[k] = self.nr[k] / self.nri19
+        self.nrfr[k] = self.nr[k] / 1e12
 
     @requires(["fcaor1", "fcaor2", "fcaor"], ["nrfr"])
     def _update_fcaor(self, k):
@@ -383,7 +343,57 @@ class Resource:
         self.fcaor2[k] = self.fcaor2_f(self.nrfr[k])
         self.fcaor[k] = clip(self.fcaor2[k], self.fcaor1[k], self.time[k],
                              self.pyear)
+
+    @requires(["rtc"], ["nrur"])
+    def _update_rtc(self, k):
+        """
+        From step k requires: nrur
+        """
+        self.rtc[k] = 1-self.nrur[k]/self.drur
+
+    @requires(["rtcm"], ["rtc"])
+    def _update_rtcm(self, k):
+        """
+        From step k requires: rtc
+        """
+        self.rtcm[k] = self.rtcm_f(self.rtc[k])
+
+    @requires(["rtcr"], ["rtcm"])
+    def _update_rtcr(self, k):
+        """
+        From step k requires: rtcm
+        """
         
+        if self.time[k] > self.pyear_res_tech:
+            self.rtcr[k] = self.rtcm[k] * self.rt[k-1]
+        else:
+            self.rtcr[k] = 0.0
+        
+    @requires(["rt"], ["rtcr"])
+    def _update_rt(self, k):
+        """
+        From step k requires: rtcr
+        """
+        
+        if k == 0:
+            self.rt[0] = 1
+        else:
+            self.rt[k] = self.rt[k-1] + (self.dt*self.rtcr[k]) 
+
+    @requires(["nruf2"], ["rt"])
+    def _update_nruf2(self, k):
+        """
+        From step k requires: rt
+        """
+        self.nruf2[k] = self.dlinf3_rt(k, self.tdt) 
+
+    @requires(["nruf"],["nruf2"])
+    def _update_nruf(self, k):
+        """
+        From step k requires: nruf2
+        """
+        self.nruf[k] = clip(self.nruf2[k], self.nruf1, self.time[k], self.pyear_res_tech)
+
     @requires(["pcrum"], ["iopc"])
     def _update_pcrum(self, k):
         """
@@ -391,56 +401,9 @@ class Resource:
         """
         self.pcrum[k] = self.pcrum_f(self.iopc[k])
 
-    @requires(["nrur"], ["pop", "pcrum", "nruf"], ["rt"])
+    @requires(["nrur"], ["pop", "pcrum", "nruf"])
     def _update_nrur(self, k, kl):
         """
         From step k requires: POP PCRUM NRUF
         """
-        self.nrur[k] = self.pop[k] * self.pcrum[k] * self.nruf[k]
-
-    @requires (["nrur"])    
-    def _update_rtc(self,k):
-        
-        """
-        From step k requires: nrur
-        """
-
-        self.rtc[k] = 1-(self.nrur[k]/self.druf)
-
-    @requires (["rtc"])
-    def _update_rtcm(self, k):
-        """
-        From step k requires: rtc
-        """
-        
-        self.rtcm[k] = self.rtcm_f(self.rtc[k])     
-    
-    @requires (["rtcm"])
-    def _update_rt(self,k):
-        """
-        From step k requires: rtcm
-        """
-        if k == 0:
-          self.rt[0] = 1
-        if self.time[k] >= self.pyear_res_tech:
-            self.rt[k] = self.rt[k-1]+ (self.dt * self.rt[k-1] * self.rtcm[k]) 
-        if self.time[k] < self.pyear_res_tech:
-            self.rt[k] = self.rt[k-1]
-    
-    @requires (["rt"])
-    def _update_nruf2(self,k):
-        """
-        From step k requires: rt
-        """
-    
-        #self.nruf2[k] = self.delay3_rt(k, self.tdt) #strts at 0.15
-        self.nruf2[k] = self.dlinf3_rt(k, self.tdt)    
-        
-    @requires (["nruf2"])
-    def _update_nruf(self,k):
-        """
-        From step k requires: nruf2
-        """
-    
-        self.nruf[k] = clip(self.nruf2[k], self.nruf1, self.time[k], self.pyear)
-        
+        self.nrur[kl] = self.pop[k] * self.pcrum[k] * self.nruf[k]
