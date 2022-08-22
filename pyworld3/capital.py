@@ -396,7 +396,6 @@ class Capital:
         # Set initial conditions
         self.ic[0] = self.ici
         self.sc[0] = self.sci
-        self.cuf[0] = 1.
         # industrial subsector
         self._update_alic(0)
         self._update_icdr(0, 0)
@@ -520,10 +519,8 @@ class Capital:
         """
         State variable, requires previous step only
         """
-        if k == 0:
-            self.ic[k] = self.ici
-        else:
-            self.ic[k] = self.ic[jk] + self.dt * (self.icir[jk] - self.icdr[jk])
+
+        self.ic[k] = self.ic[jk] + self.dt * (self.icir[jk] - self.icdr[jk])
 
     @requires(["alic"])
     def _update_alic(self, k):
@@ -552,10 +549,7 @@ class Capital:
         From step k requires: IC FCAOR CUF ICOR
         """
         
-        if k == 0:
-            self.io[0] = 6.65e+10
-        else:
-            self.io[k] = (self.ic[k] * (1 - self.fcaor[k]) * self.cuf[k] / self.icor[k])
+        self.io[k] = (self.ic[k] * (1 - self.fcaor[k]) * self.cuf[k] / self.icor[k])
         
     @requires(["iopc"], ["io", "pop"])
     def _update_iopc(self, k):
@@ -580,10 +574,8 @@ class Capital:
         """
         State variable, requires previous step only
         """
-        if k == 0:
-            self.sc[k] = self.sci
-        else:
-            self.sc[k] = self.sc[j] + self.dt * (self.scir[jk] - self.scdr[jk])
+
+        self.sc[k] = self.sc[j] + self.dt * (self.scir[jk] - self.scdr[jk])
 
     @requires(["isopc1", "isopc2", "isopc"], ["iopc"])
     def _update_isopc(self, k):
@@ -668,10 +660,8 @@ class Capital:
         """
         From step k requires: FIOAA FIOAS FIOAC
         """
-        if k == 0:
-            self.fioai[0] = 0.352468116846468
-        else:
-            self.fioai[k] = (1 - self.fioaa[k] - self.fioas[k] - self.fioac[k])
+
+        self.fioai[k] = (1 - self.fioaa[k] - self.fioas[k] - self.fioac[k])
 
     @requires(["icir"], ["io", "fioai"])
     def _update_icir(self, k, kl):

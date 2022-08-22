@@ -448,8 +448,8 @@ class Population:
         Run a sorted sequence to update one loop of the exogenous parameters.
         `@requires` decorator checks that all dependencies are computed
         previously.
-
         """
+        
         # industrial output
         self.io11[k] = .7e11*np.exp((self.time[k] - self.year_min)*.037)
         self.io12[k] = self.pop[k] * self.cio
@@ -661,50 +661,39 @@ class Population:
         State variable, requires previous step only
         """
 
-        if k == 0:
-            self.p1[0] = self.p1i
-        else:
-            self.p1[k] = self.p1[j] + self.dt*(self.b[jk] - self.d1[jk] - self.mat1[jk])
+        self.p1[k] = self.p1[j] + self.dt*(self.b[jk] - self.d1[jk] - self.mat1[jk])
 
     @requires(["p2"])
     def _update_state_p2(self, k, j, jk):
         """
         State variable, requires previous step only
         """
-        if k == 0:
-            self.p2[0] = self.p2i
-        else:
-            self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk] - self.mat2[jk])
+
+        self.p2[k] = self.p2[j] + self.dt*(self.mat1[jk] - self.d2[jk] - self.mat2[jk])
 
     @requires(["p3"])
     def _update_state_p3(self, k, j, jk):
         """
         State variable, requires previous step only
         """
-        if k == 0:
-            self.p3[0] = self.p3i
-        else:
-            self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk] - self.mat3[jk])
+
+        self.p3[k] = self.p3[j] + self.dt*(self.mat2[jk] - self.d3[jk] - self.mat3[jk])
 
     @requires(["p4"])
     def _update_state_p4(self, k, j, jk):
         """
         State variable, requires previous step only
         """
-        if k == 0:
-            self.p4[0] = self.p4i
-        else:
-            self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
+
+        self.p4[k] = self.p4[j] + self.dt*(self.mat3[jk] - self.d4[jk])
 
     @requires(["pop"], ["p1", "p2", "p3", "p4"])
     def _update_pop(self, k):
         """
         From step k=0 requires: P1 P2 P3 P4
         """
-        if k == 0:
-            self.pop[0] = self.p1[0] + self.p2[0] + self.p3[0] + self.p4[0]
-        else:
-            self.pop[k] = self.p1[k] + self.p2[k] + self.p3[k] + self.p4[k]
+
+        self.pop[k] = self.p1[k] + self.p2[k] + self.p3[k] + self.p4[k]
 
     @requires(["fpu"], ["pop"])
     def _update_fpu(self, k):
@@ -883,6 +872,7 @@ class Population:
         """
         From step k requires: IOPC AIOPC
         """
+        
         self.fie[k] = (self.iopc[k] - self.aiopc[k]) / self.aiopc[k]
 
     @requires(["sfsn"], ["diopc"])
@@ -890,6 +880,7 @@ class Population:
         """
         From step k requires: DIOPC
         """
+        
         self.sfsn[k] = self.sfsn_f(self.diopc[k]) #update 2004, changed json file 
 
     @requires(["frsn"], ["fie"])
@@ -905,6 +896,7 @@ class Population:
         """
         From step k requires: FRSN SFSN
         """
+        
         self.dcfs[k] = clip(2.0, self.dcfsn*self.frsn[k]*self.sfsn[k],self.time[k], self.zpgt)
 
     @requires(["ple"], ["le"], check_after_init=False)
@@ -914,13 +906,13 @@ class Population:
         """
 
         self.ple[k] = self.dlinf3_le(k, self.lpd)
-        #self.ple[k] = self.delay3_le(k, self.lpd)
 
     @requires(["cmple"], ["ple"])
     def _update_cmple(self, k):
         """
         From step k requires: PLE
         """
+        
         self.cmple[k] = self.cmple_f(self.ple[k])
 
     @requires(["dtf"], ["dcfs", "cmple"])
@@ -928,6 +920,7 @@ class Population:
         """
         From step k requires: DCFS CMPLE
         """
+        
         self.dtf[k] = self.dcfs[k] * self.cmple[k]
 
     @requires(["fm"], ["le"])
@@ -935,6 +928,7 @@ class Population:
         """
         From step k requires: LE
         """
+        
         self.fm[k] = self.fm_f(self.le[k])
 
     @requires(["mtf"], ["fm"])
@@ -942,6 +936,7 @@ class Population:
         """
         From step k requires: FM
         """
+        
         self.mtf[k] = self.mtfn * self.fm[k]
 
     @requires(["nfc"], ["mtf", "dtf"])
@@ -949,6 +944,7 @@ class Population:
         """
         From step k requires: MTF DTF
         """
+        
         self.nfc[k] = self.mtf[k] / self.dtf[k] - 1
 
     @requires(["fsafc"], ["nfc"])
@@ -956,6 +952,7 @@ class Population:
         """
         From step k requires: NFC
         """
+        
         self.fsafc[k] = self.fsafc_f(self.nfc[k])
 
     @requires(["fcapc"], ["fsafc", "sopc"])
@@ -963,6 +960,7 @@ class Population:
         """
         From step k requires: FSAFC SOPC
         """
+        
         self.fcapc[k] = self.fsafc[k] * self.sopc[k]  # Service Output >
 
     @requires(["fcfpc"], ["fcapc"], check_after_init=False)
@@ -970,6 +968,7 @@ class Population:
         """
         From step k=0 requires: FCAPC, else nothing
         """
+        
         self.fcfpc[k] = self.dlinf3_fcapc(k, self.hsid)
 
     @requires(["fce"], ["fcfpc"])
@@ -977,6 +976,7 @@ class Population:
         """
         From step k requires: FCFPC
         """
+        
         self.fce[k] = clip(1.0, self.fce_toclip_f(self.fcfpc[k]), self.time[k], self.fcest)
 
     @requires(["tf"], ["mtf", "fce", "dtf"])
@@ -984,6 +984,7 @@ class Population:
         """
         From step k requires: MTF FCE DTF
         """
+        
         self.tf[k] = np.minimum(self.mtf[k], (self.mtf[k]*(1-self.fce[k]) + self.dtf[k]*self.fce[k]))
 
     @requires(["cbr"], ["pop"])
@@ -991,6 +992,7 @@ class Population:
         """
         From step k requires: POP
         """
+        
         self.cbr[k] = 1000 * self.b[jk] / self.pop[k]
 
     @requires(["b"], ["d", "p2", "tf"])
@@ -998,6 +1000,7 @@ class Population:
         """
         From step k requires: D P2 TF
         """
+        
         self.b[kl] = clip(self.d[k],
                           self.tf[k] * self.p2[k] * 0.5 / self.rlt,
                           self.time[k], self.pet)
@@ -1008,6 +1011,7 @@ class Population:
         """
         From step k requires: LE
         """
+        
         self.lei[k] = self.lei_f(self.le[k])
     
     @requires (["gdpc"],["aiopc"])    
@@ -1015,6 +1019,7 @@ class Population:
         """
         From step k requires: aiopc
         """
+        
         self.gdpc[k] = self.gdpc_f(self.aiopc[k])
     
     @requires (["gdpi"],["gdpc"])    
@@ -1030,6 +1035,7 @@ class Population:
         """
         From step k requires: gdpc
         """
+        
         self.ei[k] = self.ei_f(self.gdpc[k])
     
     @requires(["hwi"],["ei", "lei", "gdpi"])    
@@ -1037,5 +1043,6 @@ class Population:
         """
         From step k requires: lei, ei, gdpi
         """
+        
         self.hwi[k] = (self.lei[k]+self.ei[k]+self.gdpi[k])/3
     

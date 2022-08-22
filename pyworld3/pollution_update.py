@@ -477,6 +477,7 @@ class Pollution:
         self.ppt[0] = 1 
         self._update_pcrum(0)
         self._update_ppolx(0)
+        
         if alone:
             self.loopk_exogenous(0)
         self._update_ppgi(0)
@@ -605,7 +606,6 @@ class Pollution:
         """
         
         self.ppar[k] = self.dlinf3_ppgr(k, self.pptd)
-        #self.ppar[k] = self.delay3_ppgr(k, self.pptd)
         
     @requires(["pp"],["ppar", "ppasr"])
     def _update_pp(self, k):

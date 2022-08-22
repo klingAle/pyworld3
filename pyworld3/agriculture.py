@@ -392,19 +392,12 @@ class Agriculture:
             func_delay = Smooth(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "smooth_"+var_.lower(), func_delay)
-
-        var_delay3 = ["YT"]
-        for var_ in var_delay3:
-            func_delay = Delay3(getattr(self, var_.lower()),
-                                self.dt, self.time, method=method)
-            setattr(self, "delay3_"+var_.lower(), func_delay)
             
         var_dlinf3 = ["YT"]
         for var_ in var_dlinf3:
             func_delay = Dlinf3(getattr(self, var_.lower()),
                                 self.dt, self.time, method=method)
             setattr(self, "dlinf3_"+var_.lower(), func_delay)
-
 
     def set_agriculture_table_functions(self, json_file=None):
         """
@@ -563,14 +556,11 @@ class Agriculture:
         self._update_lfr(0, 0)
         self._update_lfrt(0)
         # recompute supplementary initial conditions
-        self._update_ai(0)
-        self._update_pfr(0)
         
         #update 2004, added
         self._update_frd(0)
         self._update_ytcm(0)
         self._update_ytcr(0)
-        self._update_yt(0)
         self._update_lyf2(0)
 
     def loopk_agriculture(self, j, k, jk, kl, alone=False):
@@ -688,10 +678,8 @@ class Agriculture:
         """
         From step k requires: LY AL
         """
-        if k == 0:
-            self.f[0] = 4.3092e11
-        else:
-            self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
+
+        self.f[k] = self.ly[k] * self.al[k] * self.lfh * (1 - self.pl)
 
     @requires(["fpc"], ["f", "pop"])
     def _update_fpc(self, k):
@@ -756,7 +744,7 @@ class Agriculture:
         From step k=0 requires: CAI
         """
         
-        self.ai[k] = self.smooth_cai(k, self.alai[k], 5e9)#2004 update, added init Val
+        self.ai[k] = self.smooth_cai(k, self.alai[k], 5e9) #2004 update, added init Val
         
     @requires(["alai"])
     def _update_alai(self, k):
@@ -771,10 +759,8 @@ class Agriculture:
         """
         From step k requires: AI FALM AL
         """
-        if k == 0:
-            self.aiph[0] = 5.33333
-        else:
-            self.aiph[k] = round(self.ai[k] * (1 - self.falm[k]) / self.al[k],5)
+
+        self.aiph[k] = self.ai[k] * (1 - self.falm[k]) / self.al[k]
 
     @requires(["lymc"], ["aiph"])
     def _update_lymc(self, k):
@@ -788,10 +774,8 @@ class Agriculture:
         """
         From step k requires: LYF LFERT LYMC LYMAP
         """
-        if k == 0:
-            self.ly[0] = 760.0
-        else:
-            self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
+
+        self.ly[k] = self.lyf[k] * self.lfert[k] * self.lymc[k] * self.lymap[k]
 
     @requires(["lyf"],["lyf2"])
     def _update_lyf(self, k):
@@ -944,7 +928,7 @@ class Agriculture:
         """
         From step k=0 requires: FR, else nothing
         """
-        self.pfr[k] = self.smooth_fr(k, self.fspd, 1)#2004 update, added init Val
+        self.pfr[k] = self.smooth_fr(k, self.fspd, 1) #2004 update, added init Val
         
     #2004 update, added:
     
@@ -977,10 +961,8 @@ class Agriculture:
         """
         From step k requires: FRD
         """
-        if k > 0:
-            self.yt[k] = self.yt[k-1] + self.dt*self.ytcr[k]
-        else:
-            self.yt[0] = 1
+
+        self.yt[k] = self.yt[k-1] + self.dt*self.ytcr[k]
             
     @requires(["lyf2"],["yt"])
     def _update_lyf2(self, k):
@@ -988,4 +970,3 @@ class Agriculture:
         From step k requires: YT
         """
         self.lyf2[k] = self.dlinf3_yt(k, self.tdt)
-        #self.lyf2[k] = self.delay3_yt(k,self.tdt)

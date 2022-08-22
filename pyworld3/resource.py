@@ -97,6 +97,7 @@ class Resource:
         fcaor value before time=pyear [].
     fcaor2 : numpy.ndarray
         fcaor value after time=pyear [].
+    2004 update, added:
     rtc : numpy.ndarray
         resource tech change
     drur : float
@@ -114,7 +115,7 @@ class Resource:
     def __init__(self, year_min=1900, year_max=2100, dt=1, pyear=1975, pyear_res_tech = 4000,
                  verbose=False):
         self.pyear = pyear
-        self.pyear_res_tech = pyear_res_tech
+        self.pyear_res_tech = pyear_res_tech #2004 update
         self.dt = dt
         self.year_min = year_min
         self.year_max = year_max
